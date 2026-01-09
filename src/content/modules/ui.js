@@ -30,8 +30,22 @@ export class UIManager {
   }
 
   addStyles() {
+    // Inject Font Awesome via <link> for reliable loading in Shadow DOM
+    const faLink = document.createElement("link");
+    faLink.rel = "stylesheet";
+    faLink.href = chrome.runtime.getURL("src/lib/font-awesome.css");
+    this.shadow.appendChild(faLink);
+
     const style = document.createElement("style");
     style.textContent = `
+      @font-face {
+        font-family: "Font Awesome 6 Free";
+        font-style: normal;
+        font-weight: 900;
+        font-display: block;
+        src: url("${chrome.runtime.getURL("src/webfonts/fa-solid-900.woff2")}") format("woff2");
+      }
+      
       :host {
         all: initial;
         z-index: 2147483647; /* Max Z-Index */
@@ -41,9 +55,6 @@ export class UIManager {
         width: 0;
         height: 0;
         font-family: "Inter", system-ui, -apple-system, sans-serif;
-        
-        /* Import Font Awesome */
-        @import url("${chrome.runtime.getURL("src/lib/font-awesome.css")}");
         
         --primary: #2563eb;
         --primary-hover: #1d4ed8;
@@ -108,6 +119,7 @@ export class UIManager {
         gap: 2px;
         animation: scaleIn 0.1s ease-out;
         transform-origin: top left;
+        max-height: 80vh; /* Viewport Height Limit */
       }
       
       .menu.visible {
@@ -127,14 +139,14 @@ export class UIManager {
         display: flex;
         align-items: center;
         justify-content: space-between;
-      }
-
+        flex-shrink: 0; /* Header doesn't shrink */
       }
 
       .menu-items {
-        max-height: 300px;
         overflow-y: auto;
         overscroll-behavior: contain;
+        flex: 1; /* Take remaining space */
+        min-height: 0; /* Fix flex overflow */
       }
 
       .menu-items::-webkit-scrollbar {
@@ -705,24 +717,12 @@ export class UIManager {
     menu.className = "menu visible";
 
     menu.innerHTML = `
-            <div style="
-                padding: 12px; 
-                margin: 0 0 8px 0; 
-                border-bottom: 1px solid var(--border);
-                font-size: 11px;
-                font-weight: 700;
-                color: var(--text-muted);
-                letter-spacing: 0.05em;
-                user-select: none;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            ">
+            <div class="menu-header">
                 <span>${I18nService.t("menuTitle")}</span>
-                <span id="settingsIcon" style="cursor: pointer; opacity: 0.7; display: flex; align-items: center;" title="${I18nService.t(
+                <span id="settingsIcon" style="cursor: pointer; opacity: 0.7; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;" title="${I18nService.t(
       "navSettings"
     )}">
-                   <i class="fa-solid fa-gear" style="font-size: 14px;"></i>
+                   <svg viewBox="0 0 512 512" style="width: 14px; height: 14px; fill: currentColor;"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>
                 </span>
             </div>
             <div class="menu-items">
@@ -777,16 +777,44 @@ export class UIManager {
 
     // Position menu near the element or cursor
     // Since :host is position: fixed at 0,0, we use Viewport coordinates (rect)
+
+    this.shadow.appendChild(menu); // FIX: Must append to DOM to measure dimensions
+
+    // 1. Measure Dimensions from DOM (already appended)
+    const menuWidth = menu.offsetWidth;
+    const menuHeight = menu.offsetHeight;
+
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+
     const rect = context.rect;
+
+    // Default: Position below
     let top = rect.bottom + 10;
     let left = rect.left;
 
-    // Boundary checks (basic)
-    if (left + 200 > window.innerWidth) {
-      left = window.innerWidth - 210;
+    // 2. Vertical Overflow Check
+    // If not enough space below, check if enough space above
+    if (top + menuHeight > vh - 10) {
+      const spaceAbove = rect.top;
+      if (spaceAbove > menuHeight + 10) {
+        // Flip to above
+        top = rect.top - menuHeight - 10;
+        // Adjust animation origin
+        menu.style.transformOrigin = "bottom left";
+      } else {
+        // Not enough space above OR below. 
+        // Align to bottom edge of viewport effectively
+        if (vh - (rect.bottom + 10) < menuHeight) {
+          top = Math.max(10, vh - menuHeight - 10);
+        }
+      }
     }
-    if (top + 150 > window.innerHeight) {
-      top = rect.top - 150;
+
+    // 3. Horizontal Overflow Check
+    if (left + menuWidth > vw - 10) {
+      left = Math.max(10, vw - menuWidth - 10);
+      menu.style.transformOrigin = (menu.style.transformOrigin || "top left").replace("left", "right");
     }
 
     menu.style.top = `${top}px`;
@@ -795,7 +823,7 @@ export class UIManager {
     // Prevent click bubbles to document (which closes menu)
     menu.addEventListener("mousedown", (e) => e.stopPropagation());
 
-    this.shadow.appendChild(menu);
+    // this.shadow.appendChild(menu); // Already appended earlier
     this.currentMenu = menu;
     this.menuVisible = true;
 
