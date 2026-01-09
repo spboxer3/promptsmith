@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="popup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <h1>PromptSmith</h1>
+            <span class="version" id="extensionVersion"></span>
+        </div>
+        <button id="openSettings" class="icon-btn" title="Settings">⚙️</button>
+    </header>
+
+    <main>
+        <div class="status-card">
+            <span class="status-dot active"></span>
+            <span class="status-text" data-i18n="popupReady">Ready to optimize</span>
+        </div>
+
+        <div class="actions">
+            <p class="hint"><span data-i18n="popupHint">Select text on any page and press</span> <strong>Cmd+K</strong>
+            </p>
+        </div>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,91 @@
+{
+  "appDescription": {
+    "message": "連接您自己的 API 金鑰。使用內建策略優化提示。在本地或雲端運行 AI。隱私優先。",
+    "description": "The description of the application"
+  },
+  "appName": {
+    "message": "PromptSmith - The Optimizing AI Client (BYOK)",
+    "description": "App Name"
+  },
+  "navEndpoints": { "message": "連線端點" },
+  "navStrategies": { "message": "優化策略" },
+  "navSettings": { "message": "系統設定" },
+
+  "sectionEndpoints": { "message": "AI 連線設定" },
+  "btnAddEndpoint": { "message": "+ 新增端點" },
+
+  "sectionStrategies": { "message": "優化策略管理" },
+  "btnAddStrategy": { "message": "+ 新增策略" },
+
+  "sectionSettings": { "message": "一般設定" },
+  "lblLanguage": { "message": "介面語言" },
+  "lblTrigger": { "message": "快捷鍵觸發" },
+  "hintTrigger": { "message": "點擊輸入框並按下按鍵以設定快捷鍵。" },
+  "lblFloatingBtn": { "message": "顯示懸浮按鈕" },
+  "lblOutputLanguage": { "message": "AI 輸出語言" },
+  "hintOutputLanguage": {
+    "message": "留空將自動匹配輸入語言，或輸入/選擇目標語言。"
+  },
+
+  "sectionBackup": { "message": "備份與還原" },
+  "btnExport": { "message": "⬇️ 匯出設定" },
+  "btnImport": { "message": "⬆️ 匯入設定" },
+
+  "modalTitleEdit": { "message": "編輯 $1" },
+  "modalTitleAdd": { "message": "新增 $1" },
+  "btnCancel": { "message": "取消" },
+  "btnSave": { "message": "儲存" },
+
+  "lblProviderType": { "message": "服務提供商" },
+  "lblName": { "message": "名稱" },
+  "lblUrl": { "message": "API 端點網址 (Endpoint URL)" },
+  "lblApiKey": { "message": "API Key" },
+  "lblModel": { "message": "模型名稱 (Model)" },
+  "btnTestConnection": { "message": "⚡ 測試連線" },
+  "btnTestSending": { "message": "⏳ 連線中..." },
+  "msgTestSuccess": { "message": "✅ 連線成功！" },
+  "msgTestFail": { "message": "❌ 連線失敗" },
+
+  "lblStrategyName": { "message": "策略名稱" },
+  "lblInstruction": { "message": "系統指令 (System Instruction)" },
+  "lblLinkedEndpoint": { "message": "連結端點" },
+  "txtSelectEndpoint": { "message": "-- 請選擇端點 --" },
+  "tagBuiltIn": { "message": "內建" },
+  "builtInNote": {
+    "message": "ℹ️ 提示：這是內建策略，為確保穩定性，核心設定已被鎖定。"
+  },
+  "lblAdvanced": { "message": "進階選項" },
+  "lblCustomSystemPrompt": { "message": "自訂 System Prompt" },
+  "hintSystemPrompt": {
+    "message": "注意：修改此設定可能會影響回應格式穩定性。"
+  },
+
+  "btnEdit": { "message": "編輯" },
+  "btnEditEndpoint": { "message": "編輯端點" },
+  "btnDelete": { "message": "刪除" },
+  "confirmDelete": { "message": "確定要刪除此項目嗎？" },
+
+  "toastSaved": { "message": "儲存成功" },
+  "toastDeleted": { "message": "刪除成功" },
+  "toastExportFail": { "message": "匯出失敗: $1" },
+  "toastImportSuccess": { "message": "設定匯入成功！" },
+  "toastImportFail": { "message": "匯入失敗: $1" },
+  "toastReloading": { "message": "重新載入中..." },
+
+  "popupReady": { "message": "準備就緒" },
+  "popupHint": { "message": "在網頁上選取文字並按下" },
+
+  "menuTitle": { "message": "PROMPTSMITH" },
+  "noStrategies": { "message": "找不到策略。請前往設定頁面新增。" },
+  "diffTitle": { "message": "預覽變更" },
+  "diffOriginal": { "message": "原始文字" },
+  "diffOptimized": { "message": "優化結果" },
+  "btnDiscard": { "message": "放棄" },
+  "btnRegenerate": { "message": "重新生成" },
+  "tooltipCopied": { "message": "已複製" },
+  "btnCopy": { "message": "複製" },
+  "btnApply": { "message": "套用變更" },
+
+  "errNoSelection": { "message": "請先選取文字。" },
+  "errOptimizationFailed": { "message": "優化失敗: $1" }
+}

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptSmith Settings</title>
+    <link rel="stylesheet" href="options.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h1>PromptSmith</h1>
+                <span class="version" id="extensionVersion"></span>
+            </div>
+            <nav>
+                <button class="nav-item active" data-tab="endpoints">
+                    <span class="icon">🔌</span> <span data-i18n="navEndpoints">Endpoints</span>
+                </button>
+                <button class="nav-item" data-tab="strategies">
+                    <span class="icon">✨</span> <span data-i18n="navStrategies">Strategies</span>
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <span class="icon">⚙️</span> <span data-i18n="navSettings">Settings</span>
+                </button>
+            </nav>
+        </aside>
+
+        <main class="content-area">
+            <!-- endpoints Tab -->
+            <section id="endpoints" class="tab-content active">
+                <header class="section-header">
+                    <h2 data-i18n="sectionEndpoints">Connection Endpoints</h2>
+                    <button id="addEndpointBtn" class="btn-primary" data-i18n="btnAddEndpoint">+ Add Endpoint</button>
+                </header>
+                <div id="endpointList" class="card-list">
+                    <!-- Endpoints will be injected here -->
+                </div>
+            </section>
+
+            <!-- Strategies Tab -->
+            <section id="strategies" class="tab-content">
+                <header class="section-header">
+                    <h2 data-i18n="sectionStrategies">Optimization Strategies</h2>
+                    <button id="addStrategyBtn" class="btn-primary" data-i18n="btnAddStrategy">+ Add Strategy</button>
+                </header>
+                <div id="strategyList" class="card-list">
+                    <!-- Strategies will be injected here -->
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="settings" class="tab-content">
+                <header class="section-header">
+                    <h2 data-i18n="sectionSettings">General Settings</h2>
+                </header>
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label data-i18n="lblLanguage">Language</label>
+                        <select id="languageSelect">
+                            <option value="auto">Auto (System Default)</option>
+                            <option value="en">English</option>
+                            <option value="zh_TW">繁體中文</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label data-i18n="lblTrigger">Trigger Shortcut</label>
+                            <input type="text" id="triggerKey" value="Ctrl+Shift+P"
+                                placeholder="Press key combination..." style="cursor: pointer;">
+                            <small data-i18n="hintTrigger">Click field and press keys to record new shortcut.</small>
+                        </div>
+                        <div class="form-group"
+                            style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+                            <label for="showFloatingIcon" style="margin:0; font-weight:500;"
+                                data-i18n="lblFloatingBtn">Show Floating Button</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showFloatingIcon" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-i18n="lblOutputLanguage">AI Output Language</label>
+                            <input type="text" id="outputLanguage" list="languageList"
+                                placeholder="Auto (same as input)" autocomplete="off">
+                            <datalist id="languageList">
+                                <option value="">Auto (same as input)</option>
+                                <option value="English">English</option>
+                                <option value="中文 (简体)">中文 (简体)</option>
+                                <option value="中文 (繁體)">中文 (繁體)</option>
+                                <option value="日本語">日本語</option>
+                                <option value="한국어">한국어</option>
+                                <option value="Español">Español</option>
+                                <option value="Français">Français</option>
+                                <option value="Deutsch">Deutsch</option>
+                                <option value="Italiano">Italiano</option>
+                                <option value="Português">Português</option>
+                                <option value="Русский">Русский</option>
+                                <option value="العربية">العربية</option>
+                                <option value="हिन्दी">हिन्दी</option>
+                                <option value="ไทย">ไทย</option>
+                                <option value="Tiếng Việt">Tiếng Việt</option>
+                                <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                                <option value="Bahasa Melayu">Bahasa Melayu</option>
+                                <option value="Nederlands">Nederlands</option>
+                                <option value="Polski">Polski</option>
+                                <option value="Türkçe">Türkçe</option>
+                                <option value="Ελληνικά">Ελληνικά</option>
+                                <option value="עברית">עברית</option>
+                                <option value="Українська">Українська</option>
+                                <option value="Čeština">Čeština</option>
+                                <option value="Svenska">Svenska</option>
+                                <option value="Norsk">Norsk</option>
+                                <option value="Dansk">Dansk</option>
+                                <option value="Suomi">Suomi</option>
+                                <option value="Magyar">Magyar</option>
+                                <option value="Română">Română</option>
+                                <option value="Filipino">Filipino</option>
+                                <option value="বাংলা">বাংলা</option>
+                                <option value="தமிழ்">தமிழ்</option>
+                                <option value="မြန်မာဘာသာ">မြန်မာဘာသာ</option>
+                                <option value="ភាសាខ្មែរ">ភាសាខ្មែរ</option>
+                            </datalist>
+                            <small data-i18n="hintOutputLanguage">Leave empty to match input language, or type/select a
+                                language.</small>
+                        </div>
+                        <div class="form-group"
+                            style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                            <h3 style="font-size: 14px; margin-bottom: 10px;" data-i18n="sectionBackup">Backup & Restore
+                            </h3>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="exportBtn" class="btn-secondary" data-i18n="btnExport">⬇️ Export
+                                    Settings</button>
+                                <button id="importBtn" class="btn-secondary" data-i18n="btnImport">⬆️ Import
+                                    Settings</button>
+                                <input type="file" id="importFile" accept=".json" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Template -->
+    <div id="modalOverlay" class="modal-overlay hidden">
+        <div class="modal">
+            <header class="modal-header">
+                <h3 id="modalTitle">Edit Item</h3>
+                <button class="close-modal">×</button>
+            </header>
+            <div class="modal-body">
+                <form id="modalForm">
+                    <!-- Dynamic Content -->
+                </form>
+            </div>
+            <footer class="modal-footer">
+                <button class="btn-secondary close-modal" data-i18n="btnCancel">Cancel</button>
+                <button id="saveModalBtn" class="btn-primary" data-i18n="btnSave">Save</button>
+            </footer>
+        </div>
+    </div>
+
+    <script type="module" src="options.js"></script>
+</body>
+
+</html>

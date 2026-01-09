@@ -1,0 +1,95 @@
+{
+  "appDescription": {
+    "message": "Connect your own API keys. Use built-in strategies to refine prompts. Run AI locally or in the cloud. Privacy-first.",
+    "description": "The description of the application"
+  },
+  "appName": {
+    "message": "PromptSmith - The Optimizing AI Client (BYOK)",
+    "description": "App Name"
+  },
+  "navEndpoints": { "message": "Endpoints" },
+  "navStrategies": { "message": "Strategies" },
+  "navSettings": { "message": "Settings" },
+
+  "sectionEndpoints": { "message": "Connection Endpoints" },
+  "btnAddEndpoint": { "message": "+ Add Endpoint" },
+
+  "sectionStrategies": { "message": "Optimization Strategies" },
+  "btnAddStrategy": { "message": "+ Add Strategy" },
+
+  "sectionSettings": { "message": "General Settings" },
+  "lblLanguage": { "message": "Language" },
+  "lblTrigger": { "message": "Trigger Shortcut" },
+  "hintTrigger": {
+    "message": "Click field and press keys to record new shortcut."
+  },
+  "lblFloatingBtn": { "message": "Show Floating Button" },
+  "lblOutputLanguage": { "message": "AI Output Language" },
+  "hintOutputLanguage": {
+    "message": "Leave empty to match input language, or type/select a language."
+  },
+
+  "sectionBackup": { "message": "Backup & Restore" },
+  "btnExport": { "message": "⬇️ Export Settings" },
+  "btnImport": { "message": "⬆️ Import Settings" },
+
+  "modalTitleEdit": { "message": "Edit $1" },
+  "modalTitleAdd": { "message": "Add $1" },
+  "btnCancel": { "message": "Cancel" },
+  "btnSave": { "message": "Save" },
+
+  "lblProviderType": { "message": "Provider Type" },
+  "lblName": { "message": "Name" },
+  "lblUrl": { "message": "API Endpoint URL" },
+  "lblApiKey": { "message": "API Key" },
+  "lblModel": { "message": "Model Name" },
+  "btnTestConnection": { "message": "⚡ Test Connection" },
+  "btnTestSending": { "message": "⏳ Sending..." },
+  "msgTestSuccess": { "message": "✅ Connected!" },
+  "msgTestFail": { "message": "❌ Failed" },
+
+  "lblStrategyName": { "message": "Strategy Name" },
+  "lblInstruction": { "message": "System Instruction" },
+  "lblLinkedEndpoint": { "message": "Linked Endpoint" },
+  "txtSelectEndpoint": { "message": "-- Select Endpoint --" },
+  "tagBuiltIn": { "message": "Built-in" },
+  "builtInNote": {
+    "message": "ℹ️ Note: This is a built-in strategy. Core settings are locked."
+  },
+  "lblAdvanced": { "message": "Advanced Options" },
+  "lblCustomSystemPrompt": { "message": "Customize System Prompt" },
+  "hintSystemPrompt": {
+    "message": "Caution: Changing this may affect response stability."
+  },
+
+  "btnEdit": { "message": "Edit" },
+  "btnEditEndpoint": { "message": "Edit Endpoint" },
+  "btnDelete": { "message": "Delete" },
+  "confirmDelete": { "message": "Are you sure you want to delete this item?" },
+
+  "toastSaved": { "message": "Saved successfully" },
+  "toastDeleted": { "message": "Deleted successfully" },
+  "toastExportFail": { "message": "Export failed: $1" },
+  "toastImportSuccess": { "message": "Settings imported successfully!" },
+  "toastImportFail": { "message": "Import failed: $1" },
+  "toastReloading": { "message": "Reloading..." },
+
+  "popupReady": { "message": "Ready to optimize" },
+  "popupHint": { "message": "Select text on any page and press" },
+
+  "menuTitle": { "message": "PROMPTSMITH" },
+  "noStrategies": {
+    "message": "No strategies found. Go to options to add one."
+  },
+  "diffTitle": { "message": "Review Changes" },
+  "diffOriginal": { "message": "Original" },
+  "diffOptimized": { "message": "Optimized" },
+  "btnDiscard": { "message": "Discard" },
+  "btnCopy": { "message": "Copy" },
+  "btnApply": { "message": "Apply Changes" },
+  "btnRegenerate": { "message": "Regenerate" },
+  "tooltipCopied": { "message": "Copied!" },
+
+  "errNoSelection": { "message": "Please select some text first." },
+  "errOptimizationFailed": { "message": "Optimization failed: $1" }
+}
