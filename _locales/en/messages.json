@@ -49,7 +49,7 @@
   "msgTestFail": { "message": "❌ Failed" },
 
   "lblStrategyName": { "message": "Strategy Name" },
-  "lblInstruction": { "message": "System Instruction" },
+  "lblInstruction": { "message": "User's Instruction" },
   "lblLinkedEndpoint": { "message": "Linked Endpoint" },
   "txtSelectEndpoint": { "message": "-- Select Endpoint --" },
   "tagBuiltIn": { "message": "Built-in" },

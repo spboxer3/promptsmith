@@ -47,7 +47,7 @@
   "msgTestFail": { "message": "❌ 連線失敗" },
 
   "lblStrategyName": { "message": "策略名稱" },
-  "lblInstruction": { "message": "系統指令 (System Instruction)" },
+  "lblInstruction": { "message": "用戶指令 (User's Instruction)" },
   "lblLinkedEndpoint": { "message": "連結端點" },
   "txtSelectEndpoint": { "message": "-- 請選擇端點 --" },
   "tagBuiltIn": { "message": "內建" },
