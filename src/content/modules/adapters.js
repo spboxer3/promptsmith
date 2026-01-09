@@ -213,21 +213,19 @@ export class RequestAdapter {
       if (finalUrl.includes("key=")) {
         // Do nothing
       } else {
-        headers["Authorization"] = `Bearer ${apiKey}`;
         // Also add x-goog-api-key for standard Google usage
         headers["x-goog-api-key"] = apiKey;
       }
     }
 
     const body = {
-      system_instruction: {
-        parts: [{ text: systemPrompt }],
-      },
       contents: [
         {
           role: "user",
           parts: [
-            { text: `Instruction: ${instruction}\n\nInput Text:\n${input}` },
+            {
+              text: `System Instruction: ${systemPrompt}\n\nInstruction: ${instruction}\n\nInput Text:\n${input}`,
+            },
           ],
         },
       ],
