@@ -7,6 +7,7 @@
     <title>PromptSmith Settings</title>
     <link rel="stylesheet" href="options.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../lib/font-awesome.css">
 </head>
 
 <body>
@@ -18,13 +19,16 @@
             </div>
             <nav>
                 <button class="nav-item active" data-tab="endpoints">
-                    <span class="icon">🔌</span> <span data-i18n="navEndpoints">Endpoints</span>
+                    <span class="icon"><i class="fa-solid fa-plug"></i></span> <span
+                        data-i18n="navEndpoints">Endpoints</span>
                 </button>
                 <button class="nav-item" data-tab="strategies">
-                    <span class="icon">✨</span> <span data-i18n="navStrategies">Strategies</span>
+                    <span class="icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span> <span
+                        data-i18n="navStrategies">Strategies</span>
                 </button>
                 <button class="nav-item" data-tab="settings">
-                    <span class="icon">⚙️</span> <span data-i18n="navSettings">Settings</span>
+                    <span class="icon"><i class="fa-solid fa-gear"></i></span> <span
+                        data-i18n="navSettings">Settings</span>
                 </button>
             </nav>
         </aside>
@@ -34,7 +38,8 @@
             <section id="endpoints" class="tab-content active">
                 <header class="section-header">
                     <h2 data-i18n="sectionEndpoints">Connection Endpoints</h2>
-                    <button id="addEndpointBtn" class="btn-primary" data-i18n="btnAddEndpoint">+ Add Endpoint</button>
+                    <button id="addEndpointBtn" class="btn-primary" data-i18n="btnAddEndpoint"><i
+                            class="fa-solid fa-plus"></i> Add Endpoint</button>
                 </header>
                 <div id="endpointList" class="card-list">
                     <!-- Endpoints will be injected here -->
@@ -45,7 +50,8 @@
             <section id="strategies" class="tab-content">
                 <header class="section-header">
                     <h2 data-i18n="sectionStrategies">Optimization Strategies</h2>
-                    <button id="addStrategyBtn" class="btn-primary" data-i18n="btnAddStrategy">+ Add Strategy</button>
+                    <button id="addStrategyBtn" class="btn-primary" data-i18n="btnAddStrategy"><i
+                            class="fa-solid fa-plus"></i> Add Strategy</button>
                 </header>
                 <div id="strategyList" class="card-list">
                     <!-- Strategies will be injected here -->
@@ -134,9 +140,11 @@
                             <h3 style="font-size: 14px; margin-bottom: 10px;" data-i18n="sectionBackup">Backup & Restore
                             </h3>
                             <div style="display: flex; gap: 10px;">
-                                <button id="exportBtn" class="btn-secondary" data-i18n="btnExport">⬇️ Export
+                                <button id="exportBtn" class="btn-secondary" data-i18n="btnExport"><i
+                                        class="fa-solid fa-download"></i> Export
                                     Settings</button>
-                                <button id="importBtn" class="btn-secondary" data-i18n="btnImport">⬆️ Import
+                                <button id="importBtn" class="btn-secondary" data-i18n="btnImport"><i
+                                        class="fa-solid fa-upload"></i> Import
                                     Settings</button>
                                 <input type="file" id="importFile" accept=".json" style="display: none;">
                             </div>

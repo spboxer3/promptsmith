@@ -37,7 +37,8 @@
         "assets/*",
         "src/content/*",
         "src/content/modules/*",
-        "src/lib/*"
+        "src/lib/*",
+        "src/webfonts/*"
       ],
       "matches": ["<all_urls>"]
     }

@@ -42,6 +42,9 @@ export class UIManager {
         height: 0;
         font-family: "Inter", system-ui, -apple-system, sans-serif;
         
+        /* Import Font Awesome */
+        @import url("${chrome.runtime.getURL("src/lib/font-awesome.css")}");
+        
         --primary: #2563eb;
         --primary-hover: #1d4ed8;
         --bg-card: #ffffff;
@@ -124,6 +127,28 @@ export class UIManager {
         display: flex;
         align-items: center;
         justify-content: space-between;
+      }
+
+      }
+
+      .menu-items {
+        max-height: 300px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+
+      .menu-items::-webkit-scrollbar {
+        width: 6px;
+      }
+      .menu-items::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .menu-items::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      .menu-items::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
       }
 
       .menu-item {
@@ -367,6 +392,7 @@ export class UIManager {
         font-size: 18px;
         z-index: 2147483647;
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        color: var(--primary);
       }
       .minimized-fab:hover {
         transform: scale(1.05) translateY(-2px);
@@ -413,7 +439,8 @@ export class UIManager {
     if (showTriggerFab) {
       const fab = document.createElement("div");
       fab.className = "fab";
-      fab.textContent = "✨";
+      const iconUrl = chrome.runtime.getURL("assets/icons/icon48.png");
+      fab.innerHTML = `<img src="${iconUrl}" style="width: 20px; height: 20px; object-fit: contain;">`;
       fab.onmousedown = (e) => {
         e.stopPropagation();
         e.preventDefault(); // Prevent focus loss from input
@@ -545,7 +572,7 @@ export class UIManager {
     if (!fab) {
       fab = document.createElement("div");
       fab.className = "minimized-fab";
-      fab.textContent = "📝";
+      fab.innerHTML = `<i class="fa-regular fa-pen-to-square"></i>`;
       fab.onclick = (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -693,9 +720,9 @@ export class UIManager {
             ">
                 <span>${I18nService.t("menuTitle")}</span>
                 <span id="settingsIcon" style="cursor: pointer; opacity: 0.7; display: flex; align-items: center;" title="${I18nService.t(
-                  "navSettings"
-                )}">
-                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      "navSettings"
+    )}">
+                   <i class="fa-solid fa-gear" style="font-size: 14px;"></i>
                 </span>
             </div>
             <div class="menu-items">
@@ -996,8 +1023,8 @@ export class UIManager {
         <div class="diff-pane" style="position: relative;">
           <h4>${I18nService.t("diffOptimized")}</h4>
           <button id="diffCopyBtn" class="copy-btn" title="${I18nService.t(
-            "tooltipCopied"
-          )}">📋</button>
+      "tooltipCopied"
+    )}"><i class="fa-regular fa-copy"></i></button>
           <div class="diff-content new">${this.escapeHtml(optimized)}</div>
         </div>
       </div>
@@ -1005,16 +1032,16 @@ export class UIManager {
       <div class="diff-footer" style="justify-content: space-between;">
         <div class="footer-left">
           <button id="diffDiscard" class="btn-ghost danger">${I18nService.t(
-            "btnDiscard"
-          )}</button>
+      "btnDiscard"
+    )}</button>
         </div>
         <div class="footer-right">
-          <button id="diffRegenerate" class="btn-secondary">🔄 ${I18nService.t(
-            "btnRegenerate"
-          )}</button>
+          <button id="diffRegenerate" class="btn-secondary"><i class="fa-solid fa-rotate-right"></i> ${I18nService.t(
+      "btnRegenerate"
+    )}</button>
           <button id="diffApply" class="btn-primary">${I18nService.t(
-            "btnApply"
-          )}</button>
+      "btnApply"
+    )}</button>
         </div>
       </div>
     `;
@@ -1040,11 +1067,11 @@ export class UIManager {
     const copyBtn = modal.querySelector("#diffCopyBtn");
     copyBtn.onclick = () => {
       navigator.clipboard.writeText(optimized).then(() => {
-        const originalText = copyBtn.textContent;
-        copyBtn.textContent = "✓";
+        const originalHTML = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
         copyBtn.style.color = "var(--success)";
         setTimeout(() => {
-          copyBtn.textContent = "📋"; // Restore icon
+          copyBtn.innerHTML = originalHTML; // Restore icon
           copyBtn.style.color = "";
         }, 1500);
       });
