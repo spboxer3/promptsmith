@@ -30,8 +30,8 @@
   },
 
   "sectionBackup": { "message": "Backup & Restore" },
-  "btnExport": { "message": "⬇️ Export Settings" },
-  "btnImport": { "message": "⬆️ Import Settings" },
+  "btnExport": { "message": "Export Settings" },
+  "btnImport": { "message": "Import Settings" },
 
   "modalTitleEdit": { "message": "Edit $1" },
   "modalTitleAdd": { "message": "Add $1" },

@@ -28,8 +28,8 @@
   },
 
   "sectionBackup": { "message": "備份與還原" },
-  "btnExport": { "message": "⬇️ 匯出設定" },
-  "btnImport": { "message": "⬆️ 匯入設定" },
+  "btnExport": { "message": "匯出設定" },
+  "btnImport": { "message": "匯入設定" },
 
   "modalTitleEdit": { "message": "編輯 $1" },
   "modalTitleAdd": { "message": "新增 $1" },
