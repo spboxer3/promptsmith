@@ -247,11 +247,13 @@ export class TriggerManager {
       ) {
         isSelection = start !== end;
       } else {
-        // ContentEditable
-        // If text implies selection, or if range is not collapsed
-        if (range && !range.collapsed) {
-          isSelection = true;
+        // ContentEditable or Static
+        if (activeElement.isContentEditable) {
+          // Strictly check range for editables.
+          // If we grabbed full text as fallback, range might be collapsed or null, so isSelection should be false.
+          isSelection = range && !range.collapsed;
         } else {
+          // Static text: If we have text, it's a selection (since we don't support "Select All" on static non-editable body usually)
           isSelection = text && text.length > 0;
         }
       }
