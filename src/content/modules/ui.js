@@ -30,7 +30,31 @@ export class UIManager {
   }
 
   addStyles() {
-    // Inject Font Awesome via <link> for reliable loading in Shadow DOM
+    // Inject @font-face into the MAIN document head (not Shadow DOM)
+    // This ensures fonts are loaded globally and can be used by Shadow DOM
+    if (!document.getElementById("promptsmith-fa-fonts")) {
+      const fontStyle = document.createElement("style");
+      fontStyle.id = "promptsmith-fa-fonts";
+      fontStyle.textContent = `
+        @font-face {
+          font-family: "Font Awesome 6 Free";
+          font-style: normal;
+          font-weight: 900;
+          font-display: block;
+          src: url("${chrome.runtime.getURL("src/webfonts/fa-solid-900.woff2")}") format("woff2");
+        }
+        @font-face {
+          font-family: "Font Awesome 6 Free";
+          font-style: normal;
+          font-weight: 400;
+          font-display: block;
+          src: url("${chrome.runtime.getURL("src/webfonts/fa-regular-400.woff2")}") format("woff2");
+        }
+      `;
+      document.head.appendChild(fontStyle);
+    }
+
+    // Inject Font Awesome CSS classes into Shadow DOM
     const faLink = document.createElement("link");
     faLink.rel = "stylesheet";
     faLink.href = chrome.runtime.getURL("src/lib/font-awesome.css");
@@ -38,13 +62,6 @@ export class UIManager {
 
     const style = document.createElement("style");
     style.textContent = `
-      @font-face {
-        font-family: "Font Awesome 6 Free";
-        font-style: normal;
-        font-weight: 900;
-        font-display: block;
-        src: url("${chrome.runtime.getURL("src/webfonts/fa-solid-900.woff2")}") format("woff2");
-      }
       
       :host {
         all: initial;
@@ -1160,6 +1177,35 @@ export class UIManager {
       this.currentDiffOverlay = null;
     }
     this.diffVisible = false;
+  }
+
+  /**
+   * Refresh the language of the currently displayed diff modal.
+   * Called when the user changes the language setting.
+   */
+  refreshDiffLanguage() {
+    if (!this.currentDiffModal || !this.diffVisible) {
+      return;
+    }
+
+    // Update h4 titles
+    const h4s = this.currentDiffModal.querySelectorAll(".diff-pane h4");
+    if (h4s[0]) h4s[0].textContent = I18nService.t("diffOriginal");
+    if (h4s[1]) h4s[1].textContent = I18nService.t("diffOptimized");
+
+    // Update button texts
+    const discardBtn = this.currentDiffModal.querySelector("#diffDiscard");
+    const regenBtn = this.currentDiffModal.querySelector("#diffRegenerate");
+    const applyBtn = this.currentDiffModal.querySelector("#diffApply");
+
+    if (discardBtn) discardBtn.textContent = I18nService.t("btnDiscard");
+    if (regenBtn) {
+      // Preserve icon
+      regenBtn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> ${I18nService.t("btnRegenerate")}`;
+    }
+    if (applyBtn) applyBtn.textContent = I18nService.t("btnApply");
+
+    console.log("[PromptSmith] Diff language refreshed");
   }
 
   showMinimizedFab(onRestore) {

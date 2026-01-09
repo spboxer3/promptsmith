@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_appName__",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "__MSG_appDescription__",
   "default_locale": "en",
   "permissions": ["storage", "activeTab", "scripting", "contextMenus"],
@@ -38,7 +38,8 @@
         "src/content/*",
         "src/content/modules/*",
         "src/lib/*",
-        "src/webfonts/*"
+        "src/webfonts/*",
+        "_locales/*"
       ],
       "matches": ["<all_urls>"]
     }

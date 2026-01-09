@@ -40,10 +40,21 @@ export async function init() {
 
   triggerManager.start();
 
-  // Keep local config updated
-  chrome.storage.onChanged.addListener((changes, area) => {
+  // Keep local config updated and re-init i18n if language changes
+  chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area === "local" && changes["appConfig"]) {
+      const oldLang = config.language;
       Object.assign(config, changes["appConfig"].newValue);
+
+      // Re-init i18n if language changed
+      if (config.language !== oldLang) {
+        console.log("[PromptSmith] Language changed from", oldLang, "to", config.language);
+        await I18nService.init();
+        console.log("[PromptSmith] I18nService re-initialized. currentLocale:", I18nService.currentLocale, "messages loaded:", !!I18nService.messages);
+
+        // Refresh any displayed UI with new language
+        ui.refreshDiffLanguage();
+      }
     }
   });
 
@@ -123,7 +134,7 @@ async function handleOptimization(strategyId, context, injector, ui) {
     if (!resultText) {
       throw new Error(
         "AI returned empty response or format was unrecognized. Raw: " +
-          JSON.stringify(apiBody)
+        JSON.stringify(apiBody)
       );
     }
 
