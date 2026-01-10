@@ -66,7 +66,7 @@ export class TriggerManager {
   }
 
   handleKeydown(e) {
-    const triggerKey = this.config.triggerKey || "Ctrl+Shift+P";
+    const triggerKey = this.config.triggerKey || "Ctrl+Alt+P";
 
     let targetKey = "";
     let modifiers = [];
@@ -227,7 +227,7 @@ export class TriggerManager {
     if (range) {
       try {
         rect = range.getBoundingClientRect();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Fallback to element rect
@@ -273,8 +273,16 @@ export class TriggerManager {
   isEditable(element) {
     if (!element) return false;
     const tagName = element.tagName;
-    return (
-      tagName === "INPUT" || tagName === "TEXTAREA" || element.isContentEditable
-    );
+
+    // For INPUT elements, use whitelist of allowed text types
+    if (tagName === "INPUT") {
+      // Allowed text input types (suitable for text optimization)
+      const ALLOWED_INPUT_TYPES = ["text", "email", "search", "tel", "url"];
+      const inputType = (element.type || "text").toLowerCase();
+      return ALLOWED_INPUT_TYPES.includes(inputType);
+    }
+
+    // TEXTAREA and contentEditable are always text-based
+    return tagName === "TEXTAREA" || element.isContentEditable;
   }
 }

@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const config = await StorageService.getAppConfig();
   const hintKey = document.querySelector(".hint strong");
   if (hintKey) {
-    hintKey.textContent = config.triggerKey || "Ctrl+Shift+K";
+    hintKey.textContent = config.triggerKey || "Ctrl+Alt+P";
   }
 
   // 2. Check Configuration Health
