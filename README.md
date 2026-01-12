@@ -9,7 +9,7 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 - **Universal Compatibility:** Works on any website. Select text, invoke PromptSmith, and optimize instantly.
 - **Customizable Strategies:** creating tailored prompts ("Strategies") for specific tasks like "Fix Grammar," "Professional Tone," "Summarize," or "Code Review."
 - **Privacy-First:** Your API keys and data are stored locally in your browser. No middleman servers.
-- **Smart UI:** Minimalist floating review window, diff view for changes, and keyboard shortcuts (`Ctrl+Shift+P` / `Cmd+Shift+P`) for rapid access.
+- **Smart UI:** Minimalist floating review window, diff view for changes, and keyboard shortcuts (`Alt+P`) for rapid access.
 
 ## Installation
 
@@ -29,7 +29,7 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 2.  **Optimizing Text:**
     - Highlight any text on a webpage.
-    - Press the trigger shortcut (Default: `Ctrl+Shift+P` or `Cmd+Shift+P`) OR click the floating "PromptSmith" button if enabled.
+    - Press the trigger shortcut (Default: `Alt+P`) OR click the floating "PromptSmith" button if enabled.
     - Select a Strategy from the menu.
     - Review the AI's suggestion in the diff view window.
     - Click **Apply** to replace the original text, or **Copy** to save it to your clipboard.
