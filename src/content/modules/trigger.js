@@ -39,8 +39,23 @@ export class TriggerManager {
     if (this.isEditable(target)) {
       // Delay slightly to ensure layout is ready
       setTimeout(() => {
-        const rect = target.getBoundingClientRect();
-        this.callbacks.onSelection(rect, target);
+        // Check if input has content before showing FAB
+        const val =
+          target.value || target.innerText || target.textContent || "";
+        if (val.trim().length > 0) {
+          const rect = target.getBoundingClientRect();
+          const selectionState = {
+            start: target.selectionStart,
+            end: target.selectionEnd,
+            text: val.substring(
+              target.selectionStart || 0,
+              target.selectionEnd || 0
+            ),
+            isSelection: target.selectionStart !== target.selectionEnd,
+          };
+          this.callbacks.onSelection(rect, target, selectionState);
+        }
+        // If empty, don't show FAB (do nothing)
       }, 50);
     }
   }

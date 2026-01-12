@@ -41,14 +41,18 @@ export class UIManager {
           font-style: normal;
           font-weight: 900;
           font-display: block;
-          src: url("${chrome.runtime.getURL("src/webfonts/fa-solid-900.woff2")}") format("woff2");
+          src: url("${chrome.runtime.getURL(
+            "src/webfonts/fa-solid-900.woff2"
+          )}") format("woff2");
         }
         @font-face {
           font-family: "Font Awesome 6 Free";
           font-style: normal;
           font-weight: 400;
           font-display: block;
-          src: url("${chrome.runtime.getURL("src/webfonts/fa-regular-400.woff2")}") format("woff2");
+          src: url("${chrome.runtime.getURL(
+            "src/webfonts/fa-regular-400.woff2"
+          )}") format("woff2");
         }
       `;
       document.head.appendChild(fontStyle);
@@ -197,7 +201,7 @@ export class UIManager {
         box-sizing: border-box;
       }
 
-      .menu-item:hover, .menu-item:focus {
+      .menu-item:hover, .menu-item:focus, .menu-item.selected {
         background: #eff6ff;
         color: var(--primary);
       }
@@ -737,8 +741,8 @@ export class UIManager {
             <div class="menu-header">
                 <span>${I18nService.t("menuTitle")}</span>
                 <span id="settingsIcon" style="cursor: pointer; opacity: 0.7; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;" title="${I18nService.t(
-      "navSettings"
-    )}">
+                  "navSettings"
+                )}">
                    <svg viewBox="0 0 512 512" style="width: 14px; height: 14px; fill: currentColor;"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>
                 </span>
             </div>
@@ -820,7 +824,7 @@ export class UIManager {
         // Adjust animation origin
         menu.style.transformOrigin = "bottom left";
       } else {
-        // Not enough space above OR below. 
+        // Not enough space above OR below.
         // Align to bottom edge of viewport effectively
         if (vh - (rect.bottom + 10) < menuHeight) {
           top = Math.max(10, vh - menuHeight - 10);
@@ -831,7 +835,9 @@ export class UIManager {
     // 3. Horizontal Overflow Check
     if (left + menuWidth > vw - 10) {
       left = Math.max(10, vw - menuWidth - 10);
-      menu.style.transformOrigin = (menu.style.transformOrigin || "top left").replace("left", "right");
+      menu.style.transformOrigin = (
+        menu.style.transformOrigin || "top left"
+      ).replace("left", "right");
     }
 
     menu.style.top = `${top}px`;
@@ -859,15 +865,68 @@ export class UIManager {
       }
     };
 
+    // Keyboard navigation state
+    let selectedIndex = -1;
+    const menuItems = itemsContainer.querySelectorAll(".menu-item");
+
+    const updateSelection = (newIndex) => {
+      // Remove previous highlight
+      menuItems.forEach((item) => item.classList.remove("selected"));
+
+      // Clamp index
+      if (newIndex < 0) newIndex = menuItems.length - 1;
+      if (newIndex >= menuItems.length) newIndex = 0;
+
+      selectedIndex = newIndex;
+
+      // Add highlight and scroll into view
+      if (menuItems[selectedIndex]) {
+        menuItems[selectedIndex].classList.add("selected");
+        menuItems[selectedIndex].scrollIntoView({ block: "nearest" });
+      }
+    };
+
+    const keyNavListener = (e) => {
+      if (!this.menuVisible) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        updateSelection(selectedIndex + 1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        updateSelection(selectedIndex - 1);
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        const selectedBtn = menuItems[selectedIndex];
+        if (selectedBtn && !selectedBtn.disabled) {
+          selectedBtn.click();
+        }
+      }
+    };
+
     const removeListeners = () => {
       document.removeEventListener("mousedown", closeListener);
       document.removeEventListener("keydown", escListener);
+      document.removeEventListener("keydown", keyNavListener, true); // capture phase
     };
 
     // Delay adding listener to avoid immediate close
     setTimeout(() => {
       document.addEventListener("mousedown", closeListener);
       document.addEventListener("keydown", escListener);
+      // Use capture phase to intercept events BEFORE they reach webpage elements
+      document.addEventListener("keydown", keyNavListener, true);
+
+      // Auto-select first item for immediate keyboard use
+      if (menuItems.length > 0) {
+        updateSelection(0);
+      }
     }, 0);
   }
 
@@ -1068,8 +1127,8 @@ export class UIManager {
         <div class="diff-pane" style="position: relative;">
           <h4>${I18nService.t("diffOptimized")}</h4>
           <button id="diffCopyBtn" class="copy-btn" title="${I18nService.t(
-      "tooltipCopied"
-    )}"><i class="fa-regular fa-copy"></i></button>
+            "tooltipCopied"
+          )}"><i class="fa-regular fa-copy"></i></button>
           <div class="diff-content new">${this.escapeHtml(optimized)}</div>
         </div>
       </div>
@@ -1077,16 +1136,16 @@ export class UIManager {
       <div class="diff-footer" style="justify-content: space-between;">
         <div class="footer-left">
           <button id="diffDiscard" class="btn-ghost danger">${I18nService.t(
-      "btnDiscard"
-    )}</button>
+            "btnDiscard"
+          )}</button>
         </div>
         <div class="footer-right">
           <button id="diffRegenerate" class="btn-secondary"><i class="fa-solid fa-rotate-right"></i> ${I18nService.t(
-      "btnRegenerate"
-    )}</button>
+            "btnRegenerate"
+          )}</button>
           <button id="diffApply" class="btn-primary">${I18nService.t(
-      "btnApply"
-    )}</button>
+            "btnApply"
+          )}</button>
         </div>
       </div>
     `;
@@ -1201,7 +1260,9 @@ export class UIManager {
     if (discardBtn) discardBtn.textContent = I18nService.t("btnDiscard");
     if (regenBtn) {
       // Preserve icon
-      regenBtn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> ${I18nService.t("btnRegenerate")}`;
+      regenBtn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> ${I18nService.t(
+        "btnRegenerate"
+      )}`;
     }
     if (applyBtn) applyBtn.textContent = I18nService.t("btnApply");
 
