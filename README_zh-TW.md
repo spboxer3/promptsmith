@@ -1,10 +1,8 @@
 <p align="center"><img src="assets/icons/icon128.png"></p>
 
-<h1 align="center">LocalLog - Private & Simple Web Tracker</h1>
+<h1 align="center">PromptSmith - AI 驅動的最佳化客戶端 (BYOK)</h1>
 
 <p align="center"><a href="README.md">English</a> | 繁體中文</p>
-
-# PromptSmith - AI 驅動的最佳化客戶端 (BYOK)
 
 PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)」的 Chrome 擴充功能。它讓您可以直接在瀏覽器中，使用您偏好的 AI 模型（OpenAI、Anthropic、Gemini 或本地端模型）來優化文字、修正語法和微調提示詞 (Prompt)，適用於任何網頁。
 
@@ -43,4 +41,5 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
 ## 授權條款
 
 [在此加入授權資訊，例如 MIT]
+
 
