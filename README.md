@@ -39,7 +39,7 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
     - Click **Apply** to replace the original text, or **Copy** to save it to your clipboard.
 
 ## License
+MIT
 
-[Add License Information Here, e.g., MIT]
 
 
