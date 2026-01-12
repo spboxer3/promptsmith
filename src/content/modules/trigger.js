@@ -66,7 +66,7 @@ export class TriggerManager {
   }
 
   handleKeydown(e) {
-    const triggerKey = this.config.triggerKey || "Ctrl+Alt+P";
+    const triggerKey = this.config.triggerKey || "Alt+P";
 
     let targetKey = "";
     let modifiers = [];
@@ -227,7 +227,7 @@ export class TriggerManager {
     if (range) {
       try {
         rect = range.getBoundingClientRect();
-      } catch (e) { }
+      } catch (e) {}
     }
 
     // Fallback to element rect

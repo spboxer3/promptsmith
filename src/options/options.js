@@ -93,7 +93,7 @@ async function loadSettings() {
   const langSelect = document.getElementById("languageSelect");
   const outputLangInput = document.getElementById("outputLanguage");
 
-  if (triggerInput) triggerInput.value = config.triggerKey || "Ctrl+Alt+P";
+  if (triggerInput) triggerInput.value = config.triggerKey || "Alt+P";
   if (floatToggle) floatToggle.checked = config.showFloatingIcon !== false;
   if (langSelect) langSelect.value = config.language || "auto";
   if (outputLangInput) outputLangInput.value = config.outputLanguage || "";
@@ -228,44 +228,51 @@ function getEndpointForm(data) {
     <div class="form-group">
       <label>${I18nService.t("lblProviderType")}</label>
       <select name="provider" id="providerSelect">
-        <option value="${PROVIDERS.OPENAI}" ${provider === PROVIDERS.OPENAI ? "selected" : ""
-    }>OpenAI Compatible (ChatGPT, LocalAI, LM Studio)</option>
-        <option value="${PROVIDERS.GEMINI}" ${provider === PROVIDERS.GEMINI ? "selected" : ""
-    }>Gemini (Google AI / Local Proxy)</option>
-        <option value="${PROVIDERS.ANTHROPIC}" ${provider === PROVIDERS.ANTHROPIC ? "selected" : ""
-    }>Anthropic (Claude)</option>
+        <option value="${PROVIDERS.OPENAI}" ${
+    provider === PROVIDERS.OPENAI ? "selected" : ""
+  }>OpenAI Compatible (ChatGPT, LocalAI, LM Studio)</option>
+        <option value="${PROVIDERS.GEMINI}" ${
+    provider === PROVIDERS.GEMINI ? "selected" : ""
+  }>Gemini (Google AI / Local Proxy)</option>
+        <option value="${PROVIDERS.ANTHROPIC}" ${
+    provider === PROVIDERS.ANTHROPIC ? "selected" : ""
+  }>Anthropic (Claude)</option>
       </select>
     </div>
 
     <div class="form-group">
       <label>${I18nService.t("lblName")}</label>
-      <input type="text" name="name" value="${data.name || ""
-    }" placeholder="My AI Model" required>
+      <input type="text" name="name" value="${
+        data.name || ""
+      }" placeholder="My AI Model" required>
     </div>
 
     <div class="form-group">
       <label>${I18nService.t("lblUrl")}</label>
-      <input type="text" name="url" id="urlInput" value="${data.url || ""
-    }" placeholder="https://api.openai.com/v1/chat/completions" required>
+      <input type="text" name="url" id="urlInput" value="${
+        data.url || ""
+      }" placeholder="https://api.openai.com/v1/chat/completions" required>
       <div id="urlHint" class="subtitle" style="margin-top:4px; font-size:11px; opacity:0.7"></div>
     </div>
     
     <div class="form-group">
       <label>${I18nService.t("lblApiKey")}</label>
-      <input type="password" name="apiKey" value="${data.apiKey || ""
-    }" placeholder="sk-...">
+      <input type="password" name="apiKey" value="${
+        data.apiKey || ""
+      }" placeholder="sk-...">
     </div>
 
     <div class="form-group">
       <label>${I18nService.t("lblModel")}</label>
-      <input type="text" name="model" value="${data.model || ""
-    }" placeholder="gpt-4, gemini-pro, llama3...">
+      <input type="text" name="model" value="${
+        data.model || ""
+      }" placeholder="gpt-4, gemini-pro, llama3...">
     </div>
 
     <div class="test-area" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border)">
         <button type="button" id="testEndpointBtn" class="btn-secondary">${I18nService.t(
-      "btnTestConnection"
-    )}</button>
+          "btnTestConnection"
+        )}</button>
         <span id="testResult" style="margin-left:10px; font-size:12px;"></span>
     </div>
   `;
@@ -310,24 +317,28 @@ function getStrategyForm(data) {
 
   return `
     <div class="form-group">
-      <label>${I18nService.t("lblStrategyName")} ${isBuiltIn
+      <label>${I18nService.t("lblStrategyName")} ${
+    isBuiltIn
       ? `<span class="endpoint-tag" style="background:#f1f5f9; color:#64748b; margin-left:8px;">${I18nService.t(
-        "tagBuiltIn"
-      )}</span>`
+          "tagBuiltIn"
+        )}</span>`
       : ""
-    }</label>
-      <input type="text" name="name" value="${data.name || ""
-    }" placeholder="e.g., Fix Grammar" ${isBuiltIn
+  }</label>
+      <input type="text" name="name" value="${
+        data.name || ""
+      }" placeholder="e.g., Fix Grammar" ${
+    isBuiltIn
       ? 'disabled style="background-color:var(--bg-sidebar); cursor:not-allowed; opacity:0.7;"'
       : ""
-    }>
+  }>
     </div>
     <div class="form-group">
       <label>${I18nService.t("lblInstruction")}</label>
-      <textarea name="instruction" placeholder="You are a helpful assistant..." ${isBuiltIn
-      ? 'disabled style="background-color:var(--bg-sidebar); cursor:not-allowed; opacity:0.7;"'
-      : ""
-    }>${data.instruction || ""}</textarea>
+      <textarea name="instruction" placeholder="You are a helpful assistant..." ${
+        isBuiltIn
+          ? 'disabled style="background-color:var(--bg-sidebar); cursor:not-allowed; opacity:0.7;"'
+          : ""
+      }>${data.instruction || ""}</textarea>
     </div>
     <div class="form-group">
       <label>${I18nService.t("lblLinkedEndpoint")}</label>
@@ -336,42 +347,47 @@ function getStrategyForm(data) {
       </select>
     </div>
 
-    ${isBuiltIn
-      ? `
+    ${
+      isBuiltIn
+        ? `
         <div style="margin-top:24px; padding:12px; background:var(--bg-sidebar); border-radius:var(--radius); border:1px solid var(--border);">
             <p style="font-size:12px; color:var(--text-muted); margin:0; line-height:1.4;">
                 ${I18nService.t("builtInNote")}
             </p>
         </div>
         `
-      : `
+        : `
     <!-- Advanced Section -->
-    <details style="margin-top:24px; border-top:1px solid var(--border); padding-top:16px;" ${data.useCustomSystemPrompt ? "open" : ""
-      }>
+    <details style="margin-top:24px; border-top:1px solid var(--border); padding-top:16px;" ${
+      data.useCustomSystemPrompt ? "open" : ""
+    }>
         <summary style="cursor:pointer; font-weight:600; font-size:13px; color:var(--text-muted); user-select:none; margin-bottom:16px; outline:none;">${I18nService.t(
-        "lblAdvanced"
-      )}</summary>
+          "lblAdvanced"
+        )}</summary>
         
         <div style="padding-left:4px;">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
                 <label for="useCustomSys" style="margin:0; font-size:13px; font-weight:500; color:var(--text-main); cursor:pointer;">${I18nService.t(
-        "lblCustomSystemPrompt"
-      )}</label>
+                  "lblCustomSystemPrompt"
+                )}</label>
                 <label class="toggle-switch">
-                    <input type="checkbox" name="useCustomSystemPrompt" id="useCustomSys" ${data.useCustomSystemPrompt ? "checked" : ""
-      }>
+                    <input type="checkbox" name="useCustomSystemPrompt" id="useCustomSys" ${
+                      data.useCustomSystemPrompt ? "checked" : ""
+                    }>
                     <span class="slider"></span>
                 </label>
             </div>
             
-            <div id="advancedArea" class="${data.useCustomSystemPrompt ? "" : "hidden"
-      }">
+            <div id="advancedArea" class="${
+              data.useCustomSystemPrompt ? "" : "hidden"
+            }">
                 <div class="form-group">
-                    <textarea name="systemPrompt" style="min-height:150px; font-size:12px; font-family:'Menlo', monospace; line-height:1.5; width:100%;" placeholder="Default System Prompt...">${data.systemPrompt || DEFAULT_SYSTEM_PROMPT
-      }</textarea>
+                    <textarea name="systemPrompt" style="min-height:150px; font-size:12px; font-family:'Menlo', monospace; line-height:1.5; width:100%;" placeholder="Default System Prompt...">${
+                      data.systemPrompt || DEFAULT_SYSTEM_PROMPT
+                    }</textarea>
                     <div class="subtitle" style="margin-top:6px;">${I18nService.t(
-        "hintSystemPrompt"
-      )}</div>
+                      "hintSystemPrompt"
+                    )}</div>
                 </div>
             </div>
         </div>
@@ -395,7 +411,8 @@ async function populateEndpointSelect(selectedId) {
     endpoints
       .map(
         (e) =>
-          `<option value="${e.id}" ${e.id === selectedId ? "selected" : ""}>${e.name
+          `<option value="${e.id}" ${e.id === selectedId ? "selected" : ""}>${
+            e.name
           }</option>`
       )
       .join("");
@@ -472,7 +489,9 @@ async function handleTestConnection() {
       resultSpan.style.color = "var(--danger)";
     }
   } catch (e) {
-    resultSpan.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color:#ef4444; margin-right:4px;"></i> Error: ` + e.message;
+    resultSpan.innerHTML =
+      `<i class="fa-solid fa-circle-xmark" style="color:#ef4444; margin-right:4px;"></i> Error: ` +
+      e.message;
     resultSpan.style.color = "var(--danger)";
   } finally {
     if (btn) {
@@ -511,17 +530,20 @@ async function loadEndpoints() {
       (e) => `
     <div class="card">
       <div>
-        <h3>${e.name} <span class="endpoint-tag">${e.provider || "custom"
-        }</span></h3>
+        <h3>${e.name} <span class="endpoint-tag">${
+        e.provider || "custom"
+      }</span></h3>
         <p>${e.url}</p>
       </div>
       <div class="endpoint-actions">
-        <button class="btn-secondary" data-action="edit" data-id="${e.id
+        <button class="btn-secondary" data-action="edit" data-id="${
+          e.id
         }">${I18nService.t("btnEdit")}</button>
-        <button class="btn-secondary" data-action="delete" data-id="${e.id
+        <button class="btn-secondary" data-action="delete" data-id="${
+          e.id
         }" style="color:var(--danger);border-color:var(--border)">${I18nService.t(
-          "btnDelete"
-        )}</button>
+        "btnDelete"
+      )}</button>
       </div>
     </div>
   `
@@ -558,23 +580,27 @@ async function loadStrategies() {
           <p>${(s.instruction || "").substring(0, 50)}...</p>
         </div>
         <div class="endpoint-actions">
-           ${["default_optimize", "default_image_gen"].includes(s.id)
-          ? `
-               <button class="btn-secondary" data-action="edit" data-id="${s.id
-          }">${I18nService.t("btnEditEndpoint")}</button>
+           ${
+             ["default_optimize", "default_image_gen"].includes(s.id)
+               ? `
+               <button class="btn-secondary" data-action="edit" data-id="${
+                 s.id
+               }">${I18nService.t("btnEditEndpoint")}</button>
                <span class="endpoint-tag" style="background:var(--bg-sidebar); border:1px solid var(--border); color:var(--text-muted);">${I18nService.t(
-            "tagBuiltIn"
-          )}</span>
+                 "tagBuiltIn"
+               )}</span>
                `
-          : `
-               <button class="btn-secondary" data-action="edit" data-id="${s.id
-          }">${I18nService.t("btnEdit")}</button>
-               <button class="btn-secondary" data-action="delete" data-id="${s.id
-          }" style="color:var(--danger);border-color:var(--border)">${I18nService.t(
-            "btnDelete"
-          )}</button>
+               : `
+               <button class="btn-secondary" data-action="edit" data-id="${
+                 s.id
+               }">${I18nService.t("btnEdit")}</button>
+               <button class="btn-secondary" data-action="delete" data-id="${
+                 s.id
+               }" style="color:var(--danger);border-color:var(--border)">${I18nService.t(
+                   "btnDelete"
+                 )}</button>
                `
-        }
+           }
         </div>
       </div>
     `

@@ -10,7 +10,7 @@ export const KEYS = {
 };
 
 export const DEFAULT_APP_CONFIG = {
-  triggerKey: "Ctrl+Alt+P", // Default shortcut
+  triggerKey: "Alt+P", // Default shortcut
   showFloatingIcon: true, // Default FAB enabled
   language: "auto", // Default UI language
   outputLanguage: "", // Output language for AI responses (empty = auto/no override)

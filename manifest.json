@@ -47,8 +47,8 @@
   "commands": {
     "trigger_menu": {
       "suggested_key": {
-        "default": "Ctrl+Alt+P",
-        "mac": "Command+Alt+P"
+        "default": "Alt+P",
+        "mac": "Alt+P"
       },
       "description": "Open PromptSmith Menu"
     }
