@@ -10,6 +10,7 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 - **Bring Your Own Key (BYOK):** Connect your own API keys for OpenAI, Anthropic, or Google Gemini. You maintain full control over your usage and costs.
 - **Local AI Support:** Seamlessly connect to local LLMs (e.g., via LM Studio, Ollama, LocalAI) for complete privacy and offline capability.
+- **Domain Whitelist:** Control where the extension activates. Pre-configured for popular AI tools (ChatGPT, Claude, Gemini, etc.) with support for custom domains and wildcards.
 - **Universal Compatibility:** Works on any website. Select text, invoke PromptSmith, and optimize instantly.
 - **Customizable Strategies:** creating tailored prompts ("Strategies") for specific tasks like "Fix Grammar," "Professional Tone," "Summarize," or "Code Review."
 - **Privacy-First:** Your API keys and data are stored locally in your browser. No middleman servers.
@@ -39,11 +40,9 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
     - Click **Apply** to replace the original text, or **Copy** to save it to your clipboard.
 
 ## Privacy Policy
+
 [Privacy Policy](Privacy%20Policy.md)
 
 ## License
+
 MIT
-
-
-
-

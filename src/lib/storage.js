@@ -9,11 +9,32 @@ export const KEYS = {
   STRATEGIES: "strategies",
 };
 
+// Default whitelist domains for AI tools
+export const DEFAULT_WHITELIST_DOMAINS = [
+  "gemini.google.com",
+  "aistudio.google.com",
+  "chatgpt.com",
+  "*.chatgpt.com",
+  "openai.com",
+  "*.openai.com",
+  "grok.com",
+  "x.com", // Grok is on X
+  "perplexity.ai",
+  "*.perplexity.ai",
+  "claude.ai",
+  "*.claude.ai",
+  "anthropic.com",
+  "*.anthropic.com",
+];
+
 export const DEFAULT_APP_CONFIG = {
   triggerKey: "Alt+P", // Default shortcut
   showFloatingIcon: true, // Default FAB enabled
   language: "auto", // Default UI language
   outputLanguage: "", // Output language for AI responses (empty = auto/no override)
+  whitelistEnabled: true, // Default whitelist mode enabled
+  customDomains: [], // User's custom whitelist domains
+  removedDefaultDomains: [], // Default domains user has removed
 };
 
 export class StorageService {

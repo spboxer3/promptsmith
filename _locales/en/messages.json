@@ -91,5 +91,17 @@
   "tooltipCopied": { "message": "Copied!" },
 
   "errNoSelection": { "message": "Please select some text first." },
-  "errOptimizationFailed": { "message": "Optimization failed: $1" }
+  "errOptimizationFailed": { "message": "Optimization failed: $1" },
+
+  "lblWhitelist": { "message": "Domain Whitelist" },
+  "hintWhitelist": { "message": "Only activate on specified domains" },
+  "lblDefaultDomains": { "message": "Default AI Tools" },
+  "lblCustomDomains": { "message": "Custom Domains" },
+  "btnAddDomain": { "message": "+ Add" },
+  "placeholderDomain": { "message": "*.example.com" },
+  "hintDomainFormat": { "message": "Supports wildcards (e.g., *.example.com)" },
+  "noCustomDomains": { "message": "No custom domains added" },
+  "noDefaultDomains": { "message": "All default domains removed" },
+  "errInvalidDomain": { "message": "Invalid domain format" },
+  "errDomainExists": { "message": "Domain already exists" }
 }

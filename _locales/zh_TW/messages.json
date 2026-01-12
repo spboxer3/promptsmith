@@ -87,5 +87,17 @@
   "btnApply": { "message": "套用變更" },
 
   "errNoSelection": { "message": "請先選取文字。" },
-  "errOptimizationFailed": { "message": "優化失敗: $1" }
+  "errOptimizationFailed": { "message": "優化失敗: $1" },
+
+  "lblWhitelist": { "message": "網域白名單" },
+  "hintWhitelist": { "message": "僅在指定網域上啟用" },
+  "lblDefaultDomains": { "message": "預設 AI 工具" },
+  "lblCustomDomains": { "message": "自訂網域" },
+  "btnAddDomain": { "message": "+ 新增" },
+  "placeholderDomain": { "message": "*.example.com" },
+  "hintDomainFormat": { "message": "支援萬用字元（如 *.example.com）" },
+  "noCustomDomains": { "message": "尚未新增自訂網域" },
+  "noDefaultDomains": { "message": "所有預設網域已移除" },
+  "errInvalidDomain": { "message": "無效的網域格式" },
+  "errDomainExists": { "message": "此網域已存在" }
 }

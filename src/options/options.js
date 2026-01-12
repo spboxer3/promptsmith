@@ -1,13 +1,14 @@
 /**
  * PromptSmith Options Logic (Simplified)
  */
-import { StorageService } from "../lib/storage.js";
+import { StorageService, DEFAULT_WHITELIST_DOMAINS } from "../lib/storage.js";
 import {
   RequestAdapter,
   PROVIDERS,
   DEFAULT_SYSTEM_PROMPT,
 } from "../content/modules/adapters.js";
 import { I18nService } from "../lib/i18n.js";
+import { DomainMatcher } from "../lib/domainMatcher.js";
 
 const elements = {
   navItems: document.querySelectorAll(".nav-item"),
@@ -36,6 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadEndpoints();
   await loadStrategies();
   await loadSettings();
+  await loadWhitelistSettings(); // Load whitelist settings
 
   // Single Source of Truth: Inject Version from Manifest
   const manifest = chrome.runtime.getManifest();
@@ -82,6 +84,7 @@ function setupModal() {
   });
 
   setupSettingsListeners(); // Add listener for settings
+  setupWhitelistListeners(); // Add listener for whitelist
 }
 
 // --- Settings Logic ---
@@ -166,6 +169,161 @@ function setupSettingsListeners() {
   if (importBtn && importFile) {
     importBtn.addEventListener("click", () => importFile.click());
     importFile.addEventListener("change", handleImport);
+  }
+}
+
+// --- Whitelist Logic ---
+
+async function loadWhitelistSettings() {
+  const config = await StorageService.getAppConfig();
+  const toggle = document.getElementById("whitelistEnabled");
+  const content = document.getElementById("whitelistContent");
+
+  if (toggle) {
+    toggle.checked = config.whitelistEnabled !== false;
+  }
+  if (content) {
+    content.classList.toggle("disabled", !toggle?.checked);
+  }
+
+  renderDomainLists(
+    config.customDomains || [],
+    config.removedDefaultDomains || []
+  );
+}
+
+function renderDomainLists(customDomains, removedDefaultDomains = []) {
+  // Filter out removed default domains
+  const activeDefaults = DEFAULT_WHITELIST_DOMAINS.filter(
+    (d) => !removedDefaultDomains.includes(d)
+  );
+
+  // Render default domains (now deletable)
+  const defaultList = document.getElementById("defaultDomainsList");
+  if (defaultList) {
+    defaultList.innerHTML = activeDefaults.length
+      ? activeDefaults
+          .map(
+            (d) => `<span class="domain-chip default">
+              ${d}
+              <button class="remove-btn remove-default-btn" data-domain="${d}">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </span>`
+          )
+          .join("")
+      : `<span style="color:var(--text-muted); font-size:12px;">${I18nService.t(
+          "noDefaultDomains"
+        )}</span>`;
+  }
+
+  // Render custom domains
+  const customList = document.getElementById("customDomainsList");
+  if (customList) {
+    customList.innerHTML = customDomains.length
+      ? customDomains
+          .map(
+            (d) => `<span class="domain-chip">
+              ${d}
+              <button class="remove-btn" data-domain="${d}">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </span>`
+          )
+          .join("")
+      : `<span style="color:var(--text-muted); font-size:12px;" data-i18n="noCustomDomains">${I18nService.t(
+          "noCustomDomains"
+        )}</span>`;
+  }
+}
+
+function setupWhitelistListeners() {
+  const toggle = document.getElementById("whitelistEnabled");
+  const content = document.getElementById("whitelistContent");
+  const addBtn = document.getElementById("addDomainBtn");
+  const input = document.getElementById("newDomainInput");
+  const customList = document.getElementById("customDomainsList");
+  const defaultList = document.getElementById("defaultDomainsList");
+
+  // Toggle whitelist on/off
+  if (toggle && content) {
+    toggle.addEventListener("change", async (e) => {
+      content.classList.toggle("disabled", !e.target.checked);
+      await StorageService.saveAppConfig({
+        whitelistEnabled: e.target.checked,
+      });
+      showToast(I18nService.t("toastSaved"), "success");
+    });
+  }
+
+  // Add domain
+  if (addBtn && input) {
+    addBtn.addEventListener("click", async () => {
+      const domain = DomainMatcher.normalizeDomain(input.value);
+      if (!domain) return;
+
+      // Validate format
+      if (!DomainMatcher.isValidPattern(domain)) {
+        showToast(I18nService.t("errInvalidDomain"), "danger");
+        return;
+      }
+
+      const config = await StorageService.getAppConfig();
+      const domains = config.customDomains || [];
+
+      if (domains.includes(domain)) {
+        showToast(I18nService.t("errDomainExists"), "danger");
+        return;
+      }
+
+      domains.push(domain);
+      await StorageService.saveAppConfig({ customDomains: domains });
+      input.value = "";
+      renderDomainLists(domains, config.removedDefaultDomains || []);
+      showToast(I18nService.t("toastSaved"), "success");
+    });
+
+    // Enter key to add
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addBtn.click();
+      }
+    });
+  }
+
+  // Remove custom domain
+  if (customList) {
+    customList.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".remove-btn");
+      if (!btn) return;
+
+      const domain = btn.dataset.domain;
+      const config = await StorageService.getAppConfig();
+      const domains = (config.customDomains || []).filter((d) => d !== domain);
+      await StorageService.saveAppConfig({ customDomains: domains });
+      renderDomainLists(domains, config.removedDefaultDomains || []);
+      showToast(I18nService.t("toastDeleted"), "success");
+    });
+  }
+
+  // Remove default domain
+  if (defaultList) {
+    defaultList.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".remove-default-btn");
+      if (!btn) return;
+
+      const domain = btn.dataset.domain;
+      const config = await StorageService.getAppConfig();
+      const removed = config.removedDefaultDomains || [];
+
+      if (!removed.includes(domain)) {
+        removed.push(domain);
+        await StorageService.saveAppConfig({ removedDefaultDomains: removed });
+        renderDomainLists(config.customDomains || [], removed);
+        showToast(I18nService.t("toastDeleted"), "success");
+      }
+    });
   }
 }
 

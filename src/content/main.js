@@ -1,15 +1,35 @@
 import { TriggerManager } from "./modules/trigger.js";
 import { UIManager } from "./modules/ui.js";
 import { InjectionManager } from "./modules/injector.js";
-import { StorageService } from "../lib/storage.js";
+import { StorageService, DEFAULT_WHITELIST_DOMAINS } from "../lib/storage.js";
 import { RequestAdapter } from "./modules/adapters.js";
 import { I18nService } from "../lib/i18n.js";
+import { DomainMatcher } from "../lib/domainMatcher.js";
 
 export async function init() {
   console.log("[PromptSmith] Initializing...");
 
   await I18nService.init(); // Init i18n
   const config = await StorageService.getAppConfig();
+
+  // Check whitelist - skip initialization if not on whitelisted domain
+  if (config.whitelistEnabled !== false) {
+    // Get active default domains (excluding user-removed ones)
+    const removedDefaults = config.removedDefaultDomains || [];
+    const activeDefaults = DEFAULT_WHITELIST_DOMAINS.filter(
+      (d) => !removedDefaults.includes(d)
+    );
+
+    const allDomains = [...activeDefaults, ...(config.customDomains || [])];
+    const currentUrl = window.location.href;
+
+    if (!DomainMatcher.isAllowed(currentUrl, allDomains)) {
+      console.log(
+        "[PromptSmith] Current domain not in whitelist, skipping initialization."
+      );
+      return; // Exit early - don't initialize on non-whitelisted domains
+    }
+  }
 
   const ui = new UIManager();
   const injector = new InjectionManager();
@@ -48,9 +68,19 @@ export async function init() {
 
       // Re-init i18n if language changed
       if (config.language !== oldLang) {
-        console.log("[PromptSmith] Language changed from", oldLang, "to", config.language);
+        console.log(
+          "[PromptSmith] Language changed from",
+          oldLang,
+          "to",
+          config.language
+        );
         await I18nService.init();
-        console.log("[PromptSmith] I18nService re-initialized. currentLocale:", I18nService.currentLocale, "messages loaded:", !!I18nService.messages);
+        console.log(
+          "[PromptSmith] I18nService re-initialized. currentLocale:",
+          I18nService.currentLocale,
+          "messages loaded:",
+          !!I18nService.messages
+        );
 
         // Refresh any displayed UI with new language
         ui.refreshDiffLanguage();
@@ -134,7 +164,7 @@ async function handleOptimization(strategyId, context, injector, ui) {
     if (!resultText) {
       throw new Error(
         "AI returned empty response or format was unrecognized. Raw: " +
-        JSON.stringify(apiBody)
+          JSON.stringify(apiBody)
       );
     }
 

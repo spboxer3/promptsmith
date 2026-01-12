@@ -10,6 +10,7 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
 
 - **自帶金鑰 (BYOK)：** 支援連接您自己的 OpenAI、Anthropic 或 Google Gemini API 金鑰。完全掌控您的使用量與成本。
 - **支援本地端 AI：** 可無縫連接至本地運行的 LLM（例如透過 LM Studio, Ollama, LocalAI），確保絕對隱私與離線功能。
+- **網域白名單：** 控制擴充功能在哪些網站上啟用。預設支援主流 AI 工具（ChatGPT、Claude、Gemini 等），並支援自訂網域與萬用字元。
 - **全網通用：** 適用於任何網站。選取文字，喚醒 PromptSmith，立即優化。
 - **自訂策略 (Strategies)：** 針對特定任務建立專屬提示詞策略，例如「修正語法」、「專業語氣」、「摘要重點」或「程式碼審閱」。
 - **隱私均先：** 您的 API 金鑰與設定皆儲存於您的瀏覽器本地端，不經過任何第三方中介伺服器。
@@ -39,10 +40,9 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
     - 點擊 **套用變更 (Apply)** 直接替換原始文字，或點擊 **複製 (Copy)** 將結果存入剪貼簿。
 
 ## 隱私條款
+
 [隱私條款](Privacy%20Policy.md)
 
 ## 授權條款
+
 MIT
-
-
-
