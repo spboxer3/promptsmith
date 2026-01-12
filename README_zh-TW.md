@@ -38,8 +38,11 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
     - 在差異檢視視窗中審閱 AI 的建議。
     - 點擊 **套用變更 (Apply)** 直接替換原始文字，或點擊 **複製 (Copy)** 將結果存入剪貼簿。
 
-## 授權條款
+## 隱私條款
+[隱私條款](Privacy%20Policy.md)
 
-[在此加入授權資訊，例如 MIT]
+## 授權條款
+MIT
+
 
 
