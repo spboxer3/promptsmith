@@ -1,3 +1,9 @@
+<p align="center"><img src="assets/icons/icon128.png"></p>
+
+<h1 align="center">LocalLog - Private & Simple Web Tracker</h1>
+
+<p align="center">English | <a href="README_zh-TW.md">繁體中文</a></p>
+
 # PromptSmith - The Optimizing AI Client (BYOK)
 
 PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integrates directly into your Chrome browser. It empowers you to optimize text, fix grammar, and refine prompts using your preferred AI models (OpenAI, Anthropic, Gemini, or local models via Generic/OpenAI-compatible APIs) on any webpage.
@@ -37,3 +43,4 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 ## License
 
 [Add License Information Here, e.g., MIT]
+
