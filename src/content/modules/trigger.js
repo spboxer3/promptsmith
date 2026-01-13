@@ -29,13 +29,14 @@ export class TriggerManager {
       this.handleFocus({ target: document.activeElement });
     }
 
-    // Listen for config changes
-    chrome.storage.onChanged.addListener((changes, area) => {
+    // Listen for config changes (bind for removal)
+    this.boundStorageListener = (changes, area) => {
       if (area === "local" && changes["appConfig"]) {
         this.config = { ...this.config, ...changes["appConfig"].newValue };
         console.log("[PromptSmith] Config updated", this.config);
       }
-    });
+    };
+    chrome.storage.onChanged.addListener(this.boundStorageListener);
   }
 
   destroy() {
@@ -44,6 +45,11 @@ export class TriggerManager {
     document.removeEventListener("focusin", this.boundHandleFocus);
     document.removeEventListener("focusout", this.boundHandleBlur);
     window.removeEventListener("blur", this.boundWindowBlur);
+
+    // Remove chrome.storage listener to prevent Extension context invalidated error
+    if (this.boundStorageListener) {
+      chrome.storage.onChanged.removeListener(this.boundStorageListener);
+    }
   }
 
   handleFocus(e) {
