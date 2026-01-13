@@ -38,8 +38,8 @@ To function correctly, PromptSmith requires specific permissions. Here is a deta
 
 ### `scripting`
 
-- **Purpose:** Allows the extension to inject JavaScript and CSS into the web pages you visit.
-- **Justification:** This is technically required to render the PromptSmith user interface (the floating menu, the diff review window, and the floating trigger button) directly onto the webpage you are viewing.
+- **Purpose:** Allows the extension to programmatically inject JavaScript and CSS into web pages.
+- **Justification:** This permission is strictly used to implement a "Hot-fix" or "Live Reload" mechanism. When the extension is installed or updated, we use `chrome.scripting.executeScript` to immediately inject content scripts into already open tabs. This ensures the extension works immediately without forcing the user to manually refresh their pages. It is also used to dynamically render the user interface elements when needed.
 
 ### `contextMenus`
 
