@@ -3,22 +3,26 @@ export class TriggerManager {
     this.config = config;
     this.callbacks = callbacks; // { onTrigger, onSelection, onSelectionClear }
     this.currentSelection = null;
+
+    // Bind handlers once for add/removeEventListener
+    this.boundHandleKeydown = this.handleKeydown.bind(this);
+    this.boundHandleSelection = this.handleSelection.bind(this);
+    this.boundHandleFocus = this.handleFocus.bind(this);
+    this.boundHandleBlur = this.handleBlur.bind(this);
+    this.boundWindowBlur = () => {
+      this.callbacks.onSelectionClear();
+    };
   }
 
   start() {
-    document.addEventListener("keydown", this.handleKeydown.bind(this));
-    document.addEventListener(
-      "selectionchange",
-      this.handleSelection.bind(this)
-    );
+    document.addEventListener("keydown", this.boundHandleKeydown);
+    document.addEventListener("selectionchange", this.boundHandleSelection);
     // Listen for focus on inputs
-    document.addEventListener("focusin", this.handleFocus.bind(this));
-    document.addEventListener("focusout", this.handleBlur.bind(this));
+    document.addEventListener("focusin", this.boundHandleFocus);
+    document.addEventListener("focusout", this.boundHandleBlur);
 
     // Listen for window blur (switching tabs/apps)
-    window.addEventListener("blur", () => {
-      this.callbacks.onSelectionClear();
-    });
+    window.addEventListener("blur", this.boundWindowBlur);
 
     // Check initial state
     if (this.isEditable(document.activeElement)) {
@@ -32,6 +36,14 @@ export class TriggerManager {
         console.log("[PromptSmith] Config updated", this.config);
       }
     });
+  }
+
+  destroy() {
+    document.removeEventListener("keydown", this.boundHandleKeydown);
+    document.removeEventListener("selectionchange", this.boundHandleSelection);
+    document.removeEventListener("focusin", this.boundHandleFocus);
+    document.removeEventListener("focusout", this.boundHandleBlur);
+    window.removeEventListener("blur", this.boundWindowBlur);
   }
 
   handleFocus(e) {

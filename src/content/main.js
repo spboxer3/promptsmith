@@ -7,6 +7,13 @@ import { I18nService } from "../lib/i18n.js";
 import { DomainMatcher } from "../lib/domainMatcher.js";
 
 export async function init() {
+  // Hot-fix Mechanism: Cleanup previous instance if exists
+  if (window.__PROMPTSMITH_CLEANUP__) {
+    console.log("[PromptSmith] Cleaning up previous instance...");
+    window.__PROMPTSMITH_CLEANUP__();
+    window.__PROMPTSMITH_CLEANUP__ = null;
+  }
+
   console.log("[PromptSmith] Initializing...");
 
   await I18nService.init(); // Init i18n
@@ -59,6 +66,33 @@ export async function init() {
   });
 
   triggerManager.start();
+
+  // Define Cleanup Logic
+  const cleanup = () => {
+    console.log("[PromptSmith] Cleanup triggered.");
+    triggerManager.destroy(); // Should remove listeners
+    ui.cleanup(); // Remove any UI residue
+    // Remove other listeners if any...
+  };
+
+  // Register global cleanup for auto-reinjection
+  window.__PROMPTSMITH_CLEANUP__ = cleanup;
+
+  // Orphan Detection Loop
+  // If extension is reloaded/disabled, chrome.runtime.id becomes invalid.
+  const orphanCheckInterval = setInterval(() => {
+    try {
+      if (!chrome.runtime.id) {
+        throw new Error("Extension context invalidated");
+      }
+    } catch (e) {
+      console.log(
+        "[PromptSmith] Extension context invalidated (Orphaned). Cleaning up."
+      );
+      clearInterval(orphanCheckInterval);
+      cleanup();
+    }
+  }, 1000);
 
   // Keep local config updated and re-init i18n if language changes
   chrome.storage.onChanged.addListener(async (changes, area) => {

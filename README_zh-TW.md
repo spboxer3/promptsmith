@@ -45,6 +45,10 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
 
 ## 更新日誌
 
+### v0.3.3
+
+- **熱修復重載 (Hot-fix)**：擴充功能重載時自動重新注入腳本並清理舊實例，無需重新整理網頁即可繼續使用。
+
 ### v0.3.2
 
 - **預設分類更新**：更新預設分類為 General, Image, Writing, Coding

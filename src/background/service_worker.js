@@ -69,3 +69,27 @@ async function handleRequest(config) {
     throw error;
   }
 }
+
+// Auto-inject content script on install/update to implement "Hot-fix"
+// This ensures that when the extension is reloaded, content scripts are re-injected
+// without requiring a page refresh.
+chrome.runtime.onInstalled.addListener(async () => {
+  console.log(
+    "[PromptSmith] Extension installed/updated. Re-injecting scripts..."
+  );
+
+  for (const cs of chrome.runtime.getManifest().content_scripts) {
+    for (const tab of await chrome.tabs.query({ url: cs.matches })) {
+      if (tab.url.match(/(chrome|chrome-extension|edge):\/\//)) continue;
+
+      chrome.scripting
+        .executeScript({
+          target: { tabId: tab.id },
+          files: cs.js,
+        })
+        .catch((err) =>
+          console.warn(`Error re-injecting script to tab ${tab.id}:`, err)
+        );
+    }
+  }
+});

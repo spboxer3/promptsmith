@@ -45,6 +45,10 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.3.3
+
+- **Hot-fix Reload**: Automatically re-inject content scripts and clean up old instances when extension is reloaded, ensuring uninterrupted usage without page refresh.
+
 ### v0.3.2
 
 - **Default Categories**: Updated defaults to General, Image, Writing, Coding

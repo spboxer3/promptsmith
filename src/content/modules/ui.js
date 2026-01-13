@@ -1558,4 +1558,10 @@ export class UIManager {
     p.textContent = text;
     return p.innerHTML;
   }
+  cleanup() {
+    this.stopObserving();
+    if (this.container) {
+      this.container.remove();
+    }
+  }
 }
