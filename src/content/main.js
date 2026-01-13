@@ -16,10 +16,18 @@ export async function init() {
 
   console.log("[PromptSmith] Initializing...");
 
-  await I18nService.init(); // Init i18n
-  const config = await StorageService.getAppConfig();
+  // Check whitelist FIRST - skip EVERYTHING if not on whitelisted domain
+  // This prevents any chrome API calls on non-whitelisted pages
+  let config;
+  try {
+    config = await StorageService.getAppConfig();
+  } catch (e) {
+    console.log(
+      "[PromptSmith] Extension context invalidated during config load."
+    );
+    return;
+  }
 
-  // Check whitelist - skip initialization if not on whitelisted domain
   if (config.whitelistEnabled !== false) {
     // Get active default domains (excluding user-removed ones)
     const removedDefaults = config.removedDefaultDomains || [];
@@ -37,6 +45,9 @@ export async function init() {
       return; // Exit early - don't initialize on non-whitelisted domains
     }
   }
+
+  // Now safe to init i18n (only on whitelisted domains)
+  await I18nService.init();
 
   const ui = new UIManager();
   const injector = new InjectionManager();

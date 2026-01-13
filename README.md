@@ -45,6 +45,11 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.3.5
+
+- **Whitelist Priority**: Moved whitelist check to earliest possible point, preventing any chrome API calls on non-whitelisted domains.
+- **Listener Cleanup**: Fixed orphaned `chrome.storage.onChanged` listener causing context invalidated errors.
+
 ### v0.3.4
 
 - **UI Fix**: Resolved layout issue in strategy list where long descriptions caused button misalignment.

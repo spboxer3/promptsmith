@@ -45,6 +45,11 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
 
 ## 更新日誌
 
+### v0.3.5
+
+- **白名單優先**：將白名單檢查移至最早時機，非白名單網域不會執行任何 chrome API 呼叫。
+- **監聽器清理**：修正孤兒 `chrome.storage.onChanged` 監聽器導致 context invalidated 錯誤的問題。
+
 ### v0.3.4
 
 - **介面修正**：修復策略列表中因文字過長導致按鈕錯位的版面問題。
