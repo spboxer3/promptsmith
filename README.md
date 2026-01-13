@@ -45,6 +45,12 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.3.2
+
+- **Default Categories**: Updated defaults to General, Image, Writing, Coding
+- **Shortcut Fix**: Prevent menu from reopening if already visible
+- **Smart Categorization**: Built-in strategies now have default categories assigned, but user can override them
+
 ### v0.3.1
 
 - **Category Filter**: Filter strategies by category in settings page

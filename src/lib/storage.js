@@ -13,8 +13,9 @@ export const KEYS = {
 // Default categories for organizing strategies
 export const DEFAULT_CATEGORIES = [
   { id: "general", name: "General", order: 0 },
-  { id: "writing", name: "Writing", order: 1 },
-  { id: "coding", name: "Coding", order: 2 },
+  { id: "image", name: "Image", order: 1 },
+  { id: "writing", name: "Writing", order: 2 },
+  { id: "coding", name: "Coding", order: 3 },
 ];
 
 // Default whitelist domains for AI tools
@@ -115,6 +116,7 @@ export class StorageService {
         instruction:
           "Analyze the user's input. Rewrite it into a clear, structured, and high-quality prompt for an LLM. Ensure intent is correctly captured and ambiguity is removed.",
         linkedEndpointId: "",
+        categoryId: "general",
       },
       {
         id: "default_image_gen",
@@ -122,6 +124,7 @@ export class StorageService {
         instruction:
           "Transform the user's idea into a detailed, high-quality prompt optimized for AI image generators (DALL-E, Midjourney, Stable Diffusion, etc.).",
         linkedEndpointId: "",
+        categoryId: "image",
         // Custom system prompt specifically for image generation
         useCustomSystemPrompt: true,
         systemPrompt: `You are an expert prompt engineer specializing in AI image generation. Your task is to transform user ideas into detailed, high-quality prompts.
@@ -160,11 +163,16 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
       if (existingIndex >= 0) {
         // Merge: keep user's linkedEndpointId and categoryId, but ensure name/instruction are correct
         const existing = stored[existingIndex];
-        stored[existingIndex] = {
-          ...builtin, // Base values (name, instruction, etc.)
+        const merged = {
+          ...builtin, // Base values (name, instruction, categoryId, etc.)
           linkedEndpointId: existing.linkedEndpointId || "", // Preserve user's endpoint choice
-          categoryId: existing.categoryId || "", // Preserve user's category choice
+          categoryId: existing.categoryId || builtin.categoryId || "", // Preserve user's category choice, fallback to builtin default
         };
+        // Only mark for persist if something changed
+        if (JSON.stringify(stored[existingIndex]) !== JSON.stringify(merged)) {
+          stored[existingIndex] = merged;
+          needsPersist = true;
+        }
       } else {
         // Built-in strategy is missing - add it
         stored.push(builtin);
@@ -172,7 +180,7 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
       }
     }
 
-    // Persist if we added missing built-in strategies
+    // Persist if we made any changes
     if (needsPersist) {
       await chrome.storage.local.set({ [KEYS.STRATEGIES]: stored });
     }

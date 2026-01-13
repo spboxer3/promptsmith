@@ -754,6 +754,13 @@ export class UIManager {
 
   async showMenu(context, onSelect) {
     console.log("[PromptSmith] UIManager.showMenu called", context);
+
+    // Prevent opening multiple menus - if already visible, ignore
+    if (this.menuVisible) {
+      console.log("[PromptSmith] Menu already visible, ignoring trigger");
+      return;
+    }
+
     this.hideFab();
     if (this.currentMenu) this.currentMenu.remove();
     if (this.currentSubmenu) this.currentSubmenu.remove();
