@@ -110,5 +110,7 @@
   "errCategoryExists": { "message": "此分類已存在" },
   "confirmDeleteCategory": {
     "message": "確定要刪除此分類嗎？使用此分類的策略將變為未分類。"
-  }
+  },
+  "lblFilterByCategory": { "message": "篩選分類：" },
+  "optionAllCategories": { "message": "所有分類" }
 }

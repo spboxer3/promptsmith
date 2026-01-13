@@ -504,6 +504,34 @@ input:checked + .slider:before {
   margin-bottom: 12px;
 }
 
+.category-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: var(--bg-sidebar);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.category-filter label {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.category-filter select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  font-size: 13px;
+  color: var(--text-main);
+  max-width: 250px;
+}
+
 .category-chip {
   display: inline-flex;
   align-items: center;

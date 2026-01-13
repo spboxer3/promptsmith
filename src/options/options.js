@@ -878,7 +878,7 @@ async function loadEndpoints() {
   };
 }
 
-async function loadStrategies() {
+async function loadStrategies(filterCategoryId = null) {
   const strategies = await StorageService.getStrategies();
   const categories = await StorageService.getCategories();
 
@@ -888,7 +888,48 @@ async function loadStrategies() {
     categoryMap[c.id] = c.name;
   });
 
-  elements.strategyList.innerHTML = strategies
+  // Populate filter dropdown
+  const filterSelect = document.getElementById("categoryFilter");
+  if (filterSelect) {
+    const currentValue =
+      filterCategoryId !== null ? filterCategoryId : filterSelect.value;
+    filterSelect.innerHTML = `
+      <option value="">${
+        I18nService.t("optionAllCategories") || "All Categories"
+      }</option>
+      <option value="uncategorized">${
+        I18nService.t("lblUncategorized") || "Uncategorized"
+      }</option>
+      ${categories
+        .map((c) => `<option value="${c.id}">${c.name}</option>`)
+        .join("")}
+    `;
+    filterSelect.value = currentValue;
+
+    // Add change listener (only once)
+    if (!filterSelect.dataset.listenerAdded) {
+      filterSelect.addEventListener("change", () => {
+        loadStrategies(filterSelect.value);
+      });
+      filterSelect.dataset.listenerAdded = "true";
+    }
+  }
+
+  // Filter strategies
+  const selectedFilter = filterSelect ? filterSelect.value : "";
+  let filteredStrategies = strategies;
+
+  if (selectedFilter === "uncategorized") {
+    filteredStrategies = strategies.filter(
+      (s) => !s.categoryId || s.categoryId === ""
+    );
+  } else if (selectedFilter) {
+    filteredStrategies = strategies.filter(
+      (s) => s.categoryId === selectedFilter
+    );
+  }
+
+  elements.strategyList.innerHTML = filteredStrategies
     .map((s) => {
       const categoryName = s.categoryId ? categoryMap[s.categoryId] : null;
       return `

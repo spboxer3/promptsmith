@@ -114,5 +114,7 @@
   "errCategoryExists": { "message": "Category already exists" },
   "confirmDeleteCategory": {
     "message": "Delete this category? Strategies using it will become uncategorized."
-  }
+  },
+  "lblFilterByCategory": { "message": "Filter by Category:" },
+  "optionAllCategories": { "message": "All Categories" }
 }
