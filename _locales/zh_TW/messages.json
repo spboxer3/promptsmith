@@ -33,6 +33,7 @@
 
   "modalTitleEdit": { "message": "編輯 $1" },
   "modalTitleAdd": { "message": "新增 $1" },
+  "btnConfirm": { "message": "刪除" },
   "btnCancel": { "message": "取消" },
   "btnSave": { "message": "儲存" },
 
@@ -99,5 +100,15 @@
   "noCustomDomains": { "message": "尚未新增自訂網域" },
   "noDefaultDomains": { "message": "所有預設網域已移除" },
   "errInvalidDomain": { "message": "無效的網域格式" },
-  "errDomainExists": { "message": "此網域已存在" }
+  "errDomainExists": { "message": "此網域已存在" },
+
+  "lblCategories": { "message": "分類" },
+  "lblCategory": { "message": "分類" },
+  "lblUncategorized": { "message": "未分類" },
+  "btnAddCategory": { "message": "+ 新增" },
+  "placeholderCategory": { "message": "新分類名稱..." },
+  "errCategoryExists": { "message": "此分類已存在" },
+  "confirmDeleteCategory": {
+    "message": "確定要刪除此分類嗎？使用此分類的策略將變為未分類。"
+  }
 }

@@ -1,7 +1,11 @@
 /**
  * PromptSmith Options Logic (Simplified)
  */
-import { StorageService, DEFAULT_WHITELIST_DOMAINS } from "../lib/storage.js";
+import {
+  StorageService,
+  DEFAULT_WHITELIST_DOMAINS,
+  DEFAULT_CATEGORIES,
+} from "../lib/storage.js";
 import {
   RequestAdapter,
   PROVIDERS,
@@ -35,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupNavigation();
   setupModal();
   await loadEndpoints();
+  await loadCategories(); // Load categories before strategies
   await loadStrategies();
   await loadSettings();
   await loadWhitelistSettings(); // Load whitelist settings
@@ -327,6 +332,145 @@ function setupWhitelistListeners() {
   }
 }
 
+// --- Category Logic ---
+
+async function loadCategories() {
+  const categories = await StorageService.getCategories();
+  const list = document.getElementById("categoryList");
+
+  if (list) {
+    list.innerHTML = categories
+      .map(
+        (
+          c,
+          index
+        ) => `<span class="category-chip" draggable="true" data-id="${c.id}" data-index="${index}">
+          <i class="fa-solid fa-grip-vertical drag-handle"></i>
+          ${c.name}
+          <button class="remove-btn" data-id="${c.id}">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </span>`
+      )
+      .join("");
+
+    // Drag and drop reordering
+    const chips = list.querySelectorAll(".category-chip");
+    let draggedItem = null;
+
+    chips.forEach((chip) => {
+      chip.addEventListener("dragstart", (e) => {
+        draggedItem = chip;
+        chip.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      chip.addEventListener("dragend", () => {
+        chip.classList.remove("dragging");
+        draggedItem = null;
+        // Save new order
+        saveNewCategoryOrder();
+      });
+
+      chip.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        if (!draggedItem || draggedItem === chip) return;
+
+        const rect = chip.getBoundingClientRect();
+        const midX = rect.left + rect.width / 2;
+
+        if (e.clientX < midX) {
+          chip.parentNode.insertBefore(draggedItem, chip);
+        } else {
+          chip.parentNode.insertBefore(draggedItem, chip.nextSibling);
+        }
+      });
+    });
+
+    // Save new order to storage
+    async function saveNewCategoryOrder() {
+      const newOrder = [];
+      list.querySelectorAll(".category-chip").forEach((chip, index) => {
+        const cat = categories.find((c) => c.id === chip.dataset.id);
+        if (cat) {
+          cat.order = index;
+          newOrder.push(cat);
+        }
+      });
+
+      // Save each category with updated order
+      for (const cat of newOrder) {
+        await StorageService.saveCategory(cat);
+      }
+    }
+
+    // Delete category handler
+    list.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".remove-btn");
+      if (!btn) return;
+
+      const id = btn.dataset.id;
+      const confirmed = await showConfirmToast(
+        I18nService.t("confirmDeleteCategory")
+      );
+      if (confirmed) {
+        await StorageService.deleteCategory(id);
+        loadCategories();
+        loadStrategies();
+        showToast(I18nService.t("toastDeleted"), "success");
+      }
+    });
+  }
+
+  // Add category handler
+  const addBtn = document.getElementById("addCategoryBtn");
+  const input = document.getElementById("newCategoryInput");
+
+  if (addBtn && input) {
+    addBtn.onclick = async () => {
+      const name = input.value.trim();
+      if (!name) return;
+
+      const categories = await StorageService.getCategories();
+      if (categories.find((c) => c.name.toLowerCase() === name.toLowerCase())) {
+        showToast(I18nService.t("errCategoryExists"), "danger");
+        return;
+      }
+
+      const id = "cat_" + Date.now();
+      await StorageService.saveCategory({ id, name });
+      input.value = "";
+      loadCategories();
+      showToast(I18nService.t("toastSaved"), "success");
+    };
+
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addBtn.click();
+      }
+    });
+  }
+}
+
+// Helper to populate category select in strategy form
+async function populateCategorySelect(selectedId) {
+  const select = document.getElementById("categorySelect");
+  if (!select) return;
+
+  const categories = await StorageService.getCategories();
+  select.innerHTML =
+    `<option value="">${I18nService.t("lblUncategorized")}</option>` +
+    categories
+      .map(
+        (c) =>
+          `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${
+            c.name
+          }</option>`
+      )
+      .join("");
+}
+
 async function handleExport() {
   try {
     const data = await StorageService.getBackupData();
@@ -472,6 +616,7 @@ function getStrategyForm(data) {
   data = data || {};
   const isBuiltIn = ["default_optimize", "default_image_gen"].includes(data.id);
   setTimeout(populateEndpointSelect, 0, data.linkedEndpointId);
+  setTimeout(populateCategorySelect, 0, data.categoryId);
 
   return `
     <div class="form-group">
@@ -501,6 +646,12 @@ function getStrategyForm(data) {
     <div class="form-group">
       <label>${I18nService.t("lblLinkedEndpoint")}</label>
       <select name="linkedEndpointId" id="endpointSelect">
+        <option>Loading...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>${I18nService.t("lblCategory")}</label>
+      <select name="categoryId" id="categorySelect">
         <option>Loading...</option>
       </select>
     </div>
@@ -729,12 +880,23 @@ async function loadEndpoints() {
 
 async function loadStrategies() {
   const strategies = await StorageService.getStrategies();
+  const categories = await StorageService.getCategories();
+
+  // Create a map for quick category name lookup
+  const categoryMap = {};
+  categories.forEach((c) => {
+    categoryMap[c.id] = c.name;
+  });
+
   elements.strategyList.innerHTML = strategies
-    .map(
-      (s) => `
+    .map((s) => {
+      const categoryName = s.categoryId ? categoryMap[s.categoryId] : null;
+      return `
       <div class="card">
         <div>
-          <h3>${s.name}</h3>
+          <h3>${s.name}${
+        categoryName ? ` <span class="category-tag">${categoryName}</span>` : ""
+      }</h3>
           <p>${(s.instruction || "").substring(0, 50)}...</p>
         </div>
         <div class="endpoint-actions">
@@ -761,8 +923,8 @@ async function loadStrategies() {
            }
         </div>
       </div>
-    `
-    )
+    `;
+    })
     .join("");
 
   elements.strategyList.onclick = async (e) => {
@@ -844,4 +1006,44 @@ function showToast(message, type = "info") {
     toast.classList.remove("visible");
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+/**
+ * Show a confirmation toast with Confirm/Cancel buttons
+ * @param {string} message - The message to display
+ * @returns {Promise<boolean>} - Resolves to true if confirmed, false if cancelled
+ */
+function showConfirmToast(message) {
+  return new Promise((resolve) => {
+    const toast = document.createElement("div");
+    toast.className = "toast confirm-toast";
+    toast.innerHTML = `
+      <span>${message}</span>
+      <div class="confirm-toast-actions">
+        <button class="confirm-btn">${
+          I18nService.t("btnConfirm") || "Confirm"
+        }</button>
+        <button class="cancel-btn">${
+          I18nService.t("btnCancel") || "Cancel"
+        }</button>
+      </div>
+    `;
+    document.body.appendChild(toast);
+
+    // Force reflow
+    toast.offsetHeight;
+    toast.classList.add("visible");
+
+    const confirmBtn = toast.querySelector(".confirm-btn");
+    const cancelBtn = toast.querySelector(".cancel-btn");
+
+    const cleanup = (result) => {
+      toast.classList.remove("visible");
+      setTimeout(() => toast.remove(), 300);
+      resolve(result);
+    };
+
+    confirmBtn.onclick = () => cleanup(true);
+    cancelBtn.onclick = () => cleanup(false);
+  });
 }

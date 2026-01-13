@@ -35,6 +35,7 @@
 
   "modalTitleEdit": { "message": "Edit $1" },
   "modalTitleAdd": { "message": "Add $1" },
+  "btnConfirm": { "message": "Delete" },
   "btnCancel": { "message": "Cancel" },
   "btnSave": { "message": "Save" },
 
@@ -103,5 +104,15 @@
   "noCustomDomains": { "message": "No custom domains added" },
   "noDefaultDomains": { "message": "All default domains removed" },
   "errInvalidDomain": { "message": "Invalid domain format" },
-  "errDomainExists": { "message": "Domain already exists" }
+  "errDomainExists": { "message": "Domain already exists" },
+
+  "lblCategories": { "message": "Categories" },
+  "lblCategory": { "message": "Category" },
+  "lblUncategorized": { "message": "Uncategorized" },
+  "btnAddCategory": { "message": "+ Add" },
+  "placeholderCategory": { "message": "New category..." },
+  "errCategoryExists": { "message": "Category already exists" },
+  "confirmDeleteCategory": {
+    "message": "Delete this category? Strategies using it will become uncategorized."
+  }
 }

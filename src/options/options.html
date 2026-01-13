@@ -53,6 +53,20 @@
                     <button id="addStrategyBtn" class="btn-primary" data-i18n="btnAddStrategy"><i
                             class="fa-solid fa-plus"></i> Add Strategy</button>
                 </header>
+
+                <!-- Category Manager -->
+                <div class="category-manager">
+                    <h4 data-i18n="lblCategories">Categories</h4>
+                    <div id="categoryList" class="category-chips">
+                        <!-- Categories will be injected here -->
+                    </div>
+                    <div class="add-category-row">
+                        <input type="text" id="newCategoryInput" data-i18n-placeholder="placeholderCategory"
+                            placeholder="New category...">
+                        <button id="addCategoryBtn" class="btn-secondary" data-i18n="btnAddCategory">+ Add</button>
+                    </div>
+                </div>
+
                 <div id="strategyList" class="card-list">
                     <!-- Strategies will be injected here -->
                 </div>

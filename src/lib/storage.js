@@ -7,7 +7,15 @@ export const KEYS = {
   APP_CONFIG: "appConfig",
   ENDPOINTS: "endpoints",
   STRATEGIES: "strategies",
+  CATEGORIES: "categories",
 };
+
+// Default categories for organizing strategies
+export const DEFAULT_CATEGORIES = [
+  { id: "general", name: "General", order: 0 },
+  { id: "writing", name: "Writing", order: 1 },
+  { id: "coding", name: "Coding", order: 2 },
+];
 
 // Default whitelist domains for AI tools
 export const DEFAULT_WHITELIST_DOMAINS = [
@@ -150,11 +158,12 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
       const existingIndex = stored.findIndex((s) => s.id === builtin.id);
 
       if (existingIndex >= 0) {
-        // Merge: keep user's linkedEndpointId, but ensure name/instruction are correct
+        // Merge: keep user's linkedEndpointId and categoryId, but ensure name/instruction are correct
         const existing = stored[existingIndex];
         stored[existingIndex] = {
           ...builtin, // Base values (name, instruction, etc.)
           linkedEndpointId: existing.linkedEndpointId || "", // Preserve user's endpoint choice
+          categoryId: existing.categoryId || "", // Preserve user's category choice
         };
       } else {
         // Built-in strategy is missing - add it
@@ -202,6 +211,68 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
     const strategies = await this.getStrategies();
     const filtered = strategies.filter((s) => s.id !== id);
     await chrome.storage.local.set({ [KEYS.STRATEGIES]: filtered });
+  }
+
+  // --- Category Methods ---
+
+  /**
+   * Get all categories.
+   * @returns {Promise<Array>}
+   */
+  static async getCategories() {
+    const result = await chrome.storage.local.get(KEYS.CATEGORIES);
+    let stored = result[KEYS.CATEGORIES];
+
+    // Only seed default categories on first run (when key doesn't exist)
+    if (!stored) {
+      stored = [...DEFAULT_CATEGORIES];
+      await chrome.storage.local.set({ [KEYS.CATEGORIES]: stored });
+    }
+
+    // Sort by order
+    return stored.sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+
+  /**
+   * Save a category.
+   * @param {Object} category
+   */
+  static async saveCategory(category) {
+    const categories = await this.getCategories();
+    const index = categories.findIndex((c) => c.id === category.id);
+    if (index >= 0) {
+      categories[index] = category;
+    } else {
+      // New category - assign next order
+      category.order = categories.length;
+      categories.push(category);
+    }
+    await chrome.storage.local.set({ [KEYS.CATEGORIES]: categories });
+  }
+
+  /**
+   * Delete a category by ID. Strategies linked to this category become uncategorized.
+   * @param {string} id
+   */
+  static async deleteCategory(id) {
+    const categories = await this.getCategories();
+    const filtered = categories.filter((c) => c.id !== id);
+    await chrome.storage.local.set({ [KEYS.CATEGORIES]: filtered });
+
+    // Clear categoryId from strategies that used this category
+    const strategies = await this.getStrategies();
+    let updated = false;
+    for (const s of strategies) {
+      if (s.categoryId === id) {
+        s.categoryId = "";
+        updated = true;
+      }
+    }
+    if (updated) {
+      await chrome.storage.local.set({ [KEYS.STRATEGIES]: strategies });
+    }
+
+    return true;
   }
 
   /**
