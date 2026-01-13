@@ -31,20 +31,12 @@ To function correctly, PromptSmith requires specific permissions. Here is a deta
 - **Purpose:** Required to save your user preferences, custom strategies, and configured API endpoints (including API keys) locally within your browser profile.
 - **Justification:** This allows the extension to remember your settings between sessions without requiring a login or external database.
 
-### `activeTab`
-
-- **Purpose:** Grants the extension temporary access to the currently active tab when you invoke the extension (e.g., via keyboard shortcut or context menu).
-- **Justification:** This is essential for the "BYOK" functionality on any page. It allows the extension to read the text you have selected and, if you choose to "Apply" changes, to replace that text with the optimized version.
 
 ### `scripting`
 
 - **Purpose:** Allows the extension to programmatically inject JavaScript and CSS into web pages.
 - **Justification:** This permission is strictly used to implement a "Hot-fix" or "Live Reload" mechanism. When the extension is installed or updated, we use `chrome.scripting.executeScript` to immediately inject content scripts into already open tabs. This ensures the extension works immediately without forcing the user to manually refresh their pages. It is also used to dynamically render the user interface elements when needed.
 
-### `contextMenus`
-
-- **Purpose:** Enables the extension to add items to the browser's right-click context menu.
-- **Justification:** Provides a convenient alternative way for users to trigger the extension or access specific strategies without remembering keyboard shortcuts.
 
 ### Host Permissions (`<all_urls>`)
 
