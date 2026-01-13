@@ -52,6 +52,7 @@ body {
   font-size: 20px;
   font-weight: 700;
   background: linear-gradient(135deg, #60a5fa, #a855f7);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -171,6 +172,21 @@ h2 {
 .card p {
   color: var(--text-muted);
   font-size: 13px;
+  margin: 0; /* Reset default p margin */
+  line-height: 1.4;
+}
+
+.card > div:first-child {
+  flex: 1;
+  min-width: 0; /* Allow text to wrap/truncate correctly */
+  padding-right: 16px;
+}
+
+.endpoint-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0; /* Prevent buttons from being squished */
+  align-items: center;
 }
 
 /* Forms */
