@@ -43,6 +43,27 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 [Privacy Policy](Privacy%20Policy.md)
 
+## Changelog
+
+### v0.3.0
+
+- **Strategy Categories**: Organize strategies into categories for better management
+- **Cascading Menu**: Category-based hierarchical menu with submenu expansion
+- **Drag-and-drop Reordering**: Easily reorder categories by dragging
+- **Full Keyboard Navigation**: Navigate menus with arrow keys, Enter, and Escape
+- **Category Display**: Show assigned category as a tag in strategy list
+- **Toast Confirmation**: Improved delete confirmation using toast-style dialogs
+
+### v0.2.1
+
+- **Keyboard Navigation**: Navigate strategy menu with arrow keys and Enter
+- **FAB Display Fix**: Floating button only appears when input has content
+
+### v0.2.0
+
+- **Domain Whitelist**: Enable/disable extension for specific domains
+- **Advanced Variables**: Use JavaScript variables in strategy templates
+
 ## License
 
 MIT
