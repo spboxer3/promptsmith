@@ -45,6 +45,10 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.3.6
+
+- **Permissions & Policy**: Optimized manifest permissions (removed `activeTab`, `contextMenus`) and updated privacy policy to justify `scripting` usage.
+
 ### v0.3.5
 
 - **Whitelist Priority**: Moved whitelist check to earliest possible point, preventing any chrome API calls on non-whitelisted domains.

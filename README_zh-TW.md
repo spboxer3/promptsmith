@@ -45,6 +45,10 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
 
 ## 更新日誌
 
+### v0.3.6
+
+- **權限與政策優化**：優化 Manifest 權限設定（移除 `activeTab`, `contextMenus`），並更新隱私條款以說明 `scripting` 權限用途。
+
 ### v0.3.5
 
 - **白名單優先**：將白名單檢查移至最早時機，非白名單網域不會執行任何 chrome API 呼叫。
