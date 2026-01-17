@@ -73,25 +73,30 @@ export class I18nService {
       const key = el.getAttribute("data-i18n");
       const text = this.t(key);
       if (text) {
-        // If specific structure needed (e.g. icon + text), might need better handling
-        // For now, simpler is replace content.
-        // BUT, if element has children (like icons), we might wipe them.
-        // Strategy: If element has no children, textContent.
-        // If it has children, look for a text node?
-        // Safer: Only replace valid text.
-        if (el.children.length === 0) {
-          el.textContent = text;
-        } else {
-          // Try to find a text node to replace, or append?
-          // Simple heuristic: if it has data-i18n, assume it owns the text content.
-          // Maybe we should use a specific span for text if mixed with icons.
-          // Let's assume for now UI text is mostly simple.
-          // Exception: Buttons with icons. <button><span class="icon"></span> Text</button>
-          // Better validation:
-          // 1. If we use data-i18n on a container, likely meant to replace ALL content?
-          // 2. Or we put data-i18n on the text span itself.
-          // We will recommend putting data-i18n on the text-holding element.
-          el.textContent = text;
+        // Smart Replacement: Preserve Icons
+        let replaced = false;
+
+        // 1. Try to find an existing text node to replace
+        if (el.childNodes && el.childNodes.length > 0) {
+          el.childNodes.forEach((node) => {
+            // Node.TEXT_NODE === 3
+            if (node.nodeType === 3 && node.nodeValue.trim().length > 0) {
+              node.nodeValue = text;
+              replaced = true;
+            }
+          });
+        }
+
+        // 2. If no text node found (or empty), handle fallback
+        if (!replaced) {
+          if (el.children.length === 0) {
+            // No children (icons), safe to set textContent
+            el.textContent = text;
+          } else {
+            // Has icons but no text? Append the new text
+            const textNode = document.createTextNode(text);
+            el.appendChild(textNode);
+          }
         }
       }
 

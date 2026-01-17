@@ -53,8 +53,8 @@ export class DomainMatcher {
    * @returns {boolean}
    */
   static isValidPattern(pattern) {
-    // Allow: *.domain.com, domain.com, sub.domain.com
-    const regex = /^(\*\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+    // Allow: *.domain.com, domain.com, sub.domain.com, localhost
+    const regex = /^(\*\.)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+$/;
     return regex.test(pattern);
   }
 
