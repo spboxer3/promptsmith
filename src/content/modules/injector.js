@@ -30,7 +30,7 @@ export class InjectionManager {
         element.focus();
         element.setSelectionRange(newCursorPos, newCursorPos);
       } catch (e) {
-        console.warn("[PromptSmith] Failed to set cursor position", e);
+        console.warn("[PromptSmith] Failed to set cursor position:", e.message);
       }
     } else if (element.isContentEditable) {
       this.handleContentEditable(element, context, newText);

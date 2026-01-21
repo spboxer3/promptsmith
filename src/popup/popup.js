@@ -54,9 +54,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Chrome Extensions cannot run on chrome:// or edge:// pages
     if (
-      tab.url.startsWith("chrome://") ||
-      tab.url.startsWith("edge://") ||
-      tab.url.startsWith("about:")
+      tab.url &&
+      (tab.url.startsWith("chrome://") ||
+        tab.url.startsWith("edge://") ||
+        tab.url.startsWith("about:"))
     ) {
       if (dot) {
         dot.classList.remove("active");

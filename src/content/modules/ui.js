@@ -2,6 +2,16 @@ import { StorageService } from "../../lib/storage.js";
 
 import { I18nService } from "../../lib/i18n.js";
 
+// Safe wrapper for chrome.runtime.getURL to handle orphaned scripts
+function safeGetURL(path) {
+  try {
+    if (!chrome.runtime.id) return "";
+    return chrome.runtime.getURL(path);
+  } catch (e) {
+    return "";
+  }
+}
+
 export class UIManager {
   constructor() {
     this.container = document.createElement("div");
@@ -41,7 +51,7 @@ export class UIManager {
           font-style: normal;
           font-weight: 900;
           font-display: block;
-          src: url("${chrome.runtime.getURL(
+          src: url("${safeGetURL(
             "src/webfonts/fa-solid-900.woff2"
           )}") format("woff2");
         }
@@ -50,7 +60,7 @@ export class UIManager {
           font-style: normal;
           font-weight: 400;
           font-display: block;
-          src: url("${chrome.runtime.getURL(
+          src: url("${safeGetURL(
             "src/webfonts/fa-regular-400.woff2"
           )}") format("woff2");
         }
@@ -61,7 +71,7 @@ export class UIManager {
     // Inject Font Awesome CSS classes into Shadow DOM
     const faLink = document.createElement("link");
     faLink.rel = "stylesheet";
-    faLink.href = chrome.runtime.getURL("src/lib/font-awesome.css");
+    faLink.href = safeGetURL("src/lib/font-awesome.css");
     this.shadow.appendChild(faLink);
 
     const style = document.createElement("style");
@@ -507,7 +517,7 @@ export class UIManager {
     if (showTriggerFab) {
       const fab = document.createElement("div");
       fab.className = "fab";
-      const iconUrl = chrome.runtime.getURL("assets/icons/icon48.png");
+      const iconUrl = safeGetURL("assets/icons/icon48.png");
       fab.innerHTML = `<img src="${iconUrl}" style="width: 20px; height: 20px; object-fit: contain;">`;
       fab.onmousedown = (e) => {
         e.stopPropagation();
@@ -552,6 +562,27 @@ export class UIManager {
       capture: true,
       passive: true,
     });
+
+    // Add MutationObserver to detect when element is removed from DOM
+    this.removalObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const removedNode of mutation.removedNodes) {
+          if (
+            removedNode === anchorElement ||
+            (removedNode.contains && removedNode.contains(anchorElement))
+          ) {
+            // The observed element was removed from DOM
+            this.clearFabs();
+            this.stopObserving();
+            return;
+          }
+        }
+      }
+    });
+    this.removalObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
   }
 
   stopObserving() {
@@ -566,6 +597,21 @@ export class UIManager {
       });
       this.boundScrollHandler = null;
     }
+
+    if (this.removalObserver) {
+      this.removalObserver.disconnect();
+      this.removalObserver = null;
+    }
+  }
+
+  clearFabs() {
+    // Clear trigger FAB
+    if (this.currentFab) {
+      this.currentFab.remove();
+      this.currentFab = null;
+    }
+    // Clear minimized review FAB if any
+    this.hideMinimizedFab();
   }
 
   updatePositions(anchorElement) {
@@ -771,7 +817,7 @@ export class UIManager {
       strategies = await StorageService.getStrategies();
       categories = await StorageService.getCategories();
     } catch (err) {
-      console.error(
+      console.warn(
         "[PromptSmith] Extension context invalidated. Please refresh the page."
       );
       this.showToast("Extension updated. Please refresh the page.", "warning");
@@ -827,7 +873,11 @@ export class UIManager {
       };
       settingsIcon.onclick = (e) => {
         e.stopPropagation();
-        chrome.runtime.sendMessage({ type: "OPEN_OPTIONS" });
+        try {
+          chrome.runtime.sendMessage({ type: "OPEN_OPTIONS" });
+        } catch (err) {
+          // Extension context invalidated
+        }
         this.hideMenu();
       };
     }

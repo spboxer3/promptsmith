@@ -143,7 +143,7 @@ export class RequestAdapter {
 
       return "";
     } catch (e) {
-      console.error("Error parsing response:", e);
+      console.warn("Error parsing response:", e.message);
       return "";
     }
   }

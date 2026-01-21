@@ -9,12 +9,23 @@ export class I18nService {
    * Loads the user's language preference and fetches custom messages if needed.
    */
   static async init() {
+    // Check if extension context is valid
+    try {
+      if (!chrome.runtime.id) return;
+    } catch (e) {
+      return; // Extension context invalidated
+    }
+
     const config = await StorageService.getAppConfig();
     this.currentLocale = config.language || "auto";
 
     if (this.currentLocale === "auto") {
       this.messages = null; // Use native chrome.i18n
-      console.log("[I18n] Using system locale:", chrome.i18n.getUILanguage());
+      try {
+        console.log("[I18n] Using system locale:", chrome.i18n.getUILanguage());
+      } catch (e) {
+        // Extension context invalidated
+      }
     } else {
       console.log("[I18n] Loading custom locale:", this.currentLocale);
       try {
@@ -24,7 +35,7 @@ export class I18nService {
         const response = await fetch(url);
         this.messages = await response.json();
       } catch (e) {
-        console.error("[I18n] Failed to load locale:", e);
+        console.warn("[I18n] Failed to load locale:", e.message);
         this.messages = null; // Fallback
       }
     }

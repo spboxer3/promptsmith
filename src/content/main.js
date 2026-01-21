@@ -242,7 +242,7 @@ async function handleOptimization(strategyId, context, injector, ui) {
     // If showReviewLoading is open, user is stuck unless we close or show error.
     // ui.hideDiff() will close the loader.
     ui.hideDiff();
-    console.error("[PromptSmith] Optimization Error:", err);
+    console.warn("[PromptSmith] Optimization Error:", err.message);
     ui.showToast(err.message, "danger");
   }
 }

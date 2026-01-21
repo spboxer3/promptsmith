@@ -29,7 +29,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     if (tab && tab.id) {
       chrome.tabs.sendMessage(tab.id, { type: "TRIGGER_MENU" }).catch((err) => {
         // Content script might not be injected on this tab
-        console.warn("Could not send trigger to tab", tab.url, err);
+        console.warn("Could not send trigger to tab", tab.url, err.message);
       });
     }
   }
@@ -65,7 +65,9 @@ async function handleRequest(config) {
       data: json,
     };
   } catch (error) {
-    console.error("Fetch Error:", error);
+    // Use warn instead of error to avoid triggering Chrome's extension error badge
+    // The error is still properly propagated to the caller
+    console.warn("[PromptSmith] Fetch failed:", error.message);
     throw error;
   }
 }
@@ -88,7 +90,7 @@ chrome.runtime.onInstalled.addListener(async () => {
           files: cs.js,
         })
         .catch((err) =>
-          console.warn(`Error re-injecting script to tab ${tab.id}:`, err)
+          console.warn(`Error re-injecting script to tab ${tab.id}:`, err.message)
         );
     }
   }
