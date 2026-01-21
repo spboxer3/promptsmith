@@ -18,6 +18,8 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+.gemini/
+.agent/
 
 # Node (if applicable in future)
 node_modules/

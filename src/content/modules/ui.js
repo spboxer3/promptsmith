@@ -1250,6 +1250,18 @@ export class UIManager {
 
     this.currentDiffModal = modal;
     this.currentDiffOverlay = overlay;
+
+    // --- Keyboard Event Handler for Loading State ---
+    const loadingKeyListener = (e) => {
+      if (!this.diffVisible) return;
+      if (e.key === "Enter" || e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    };
+    this.reviewKeyListener = loadingKeyListener;
+    document.addEventListener("keydown", loadingKeyListener, true);
   }
 
   showDiff(original, optimized, context, onApply, onDiscard, onRegenerate) {
@@ -1401,6 +1413,32 @@ export class UIManager {
       this.hideDiff();
       this.hideMinimizedFab();
     };
+
+    // --- Keyboard Event Handler for Review UI ---
+    const reviewKeyListener = (e) => {
+      // Only handle when diff is visible and not loading
+      if (!this.diffVisible || this.isLoading) return;
+      // Skip if diff is minimized
+      if (this.isReviewMinimized) return;
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        // Trigger Apply
+        modal.querySelector("#diffApply")?.click();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        // Trigger Minimize
+        this.minimizeDiff();
+      }
+    };
+
+    // Store reference for cleanup and add listener with capture phase
+    this.reviewKeyListener = reviewKeyListener;
+    document.addEventListener("keydown", reviewKeyListener, true);
   }
 
   minimizeDiff() {
@@ -1425,6 +1463,11 @@ export class UIManager {
   }
 
   hideDiff() {
+    // Remove keyboard listener
+    if (this.reviewKeyListener) {
+      document.removeEventListener("keydown", this.reviewKeyListener, true);
+      this.reviewKeyListener = null;
+    }
     if (this.currentDiffModal) {
       this.currentDiffModal.remove();
       this.currentDiffModal = null;
