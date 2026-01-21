@@ -45,6 +45,10 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.3.10
+
+- **Bug Fix**: Fixed an issue where the endpoint for the default "Make Prompt Better" strategy was lost during import.
+
 ### v0.3.9
 
 - **FAB Cleanup**: Fixed "Ghost Icon" issue where floating buttons persisted after input elements were removed (e.g., in SPA switching).

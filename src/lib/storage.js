@@ -311,40 +311,10 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
       throw new Error("Invalid backup file: No recognized data found.");
     }
 
-    // Protect Built-in Strategy
+    // Built-in strategies are protected by getStrategies() merging logic.
+    // We allow importing them here to preserve user's linkedEndpointId and categoryId preferences.
     if (cleanData[KEYS.STRATEGIES]) {
-      // Fetch current local state to preserve the built-in strategy
-      const currentStrategies = await this.getStrategies();
-      const localDefault = currentStrategies.find(
-        (s) => s.id === "default_optimize"
-      );
-
-      // Filter out 'default_optimize' from the backup data (prevent overwrite)
-      let newStrategies = cleanData[KEYS.STRATEGIES].filter(
-        (s) => s.id !== "default_optimize"
-      );
-
-      // Restore the local built-in strategy (if existing)
-      if (localDefault) {
-        // Ensure it's at the beginning or end?
-        // Default seeding puts it first?
-        // Let's put it at the beginning for consistency.
-        newStrategies.unshift(localDefault);
-      } else {
-        // If for some reason local didn't have it (rare), do we use the backup one?
-        // No, user wants to enforce immutability of the *system* version.
-        // But if local is missing, maybe we should seed it later?
-        // getStrategies() seeds it on read. So if we save without it, next read seeds it.
-        // But to be safe, let's just rely on getStrategies() seeding logic if we fail to find it here.
-        // Actually, if we save an empty array (or array without default), next getStrategies() call MIGHT seed it if array is empty?
-        // Logic: if (!stored || stored.length === 0) -> Seed.
-        // If we have other strategies but no default, it WON'T seed.
-        // So we MUST ensure it's here.
-        // If localDefault is missing (impossible if we called getStrategies), we are fine.
-        // getStrategies seeds it if missing. So localDefault WILL be defined.
-      }
-
-      cleanData[KEYS.STRATEGIES] = newStrategies;
+      // No filtering needed for default_optimize
     }
 
     await chrome.storage.local.set(cleanData);
