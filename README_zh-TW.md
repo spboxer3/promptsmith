@@ -45,6 +45,16 @@ PromptSmith 是一款注重隱私、「自帶金鑰 (Bring Your Own Key, BYOK)�
 
 ## 更新日誌
 
+### v0.3.9
+
+- **懸浮按鈕清理 (FAB Cleanup)**：修復「幽靈圖示」問題，當輸入框從 DOM 移除時（如 SPA 切換對話），懸浮按鈕會自動消失。
+- **錯誤處理優化**：優化 Console 日誌記錄並增加對孤兒腳本的防護，避免 Chrome 誤報錯誤。
+- **錯誤修正**：修正 Localhost 白名單驗證支援，以及 i18n 翻譯時保留按鈕圖示。
+
+### v0.3.7
+
+- **Enter 鍵攔截**：當審閱視窗 (Review UI) 或載入中狀態開啟時，阻止 Enter 鍵觸發底層網頁的表單送出。
+
 ### v0.3.6
 
 - **權限與政策優化**：優化 Manifest 權限設定（移除 `activeTab`, `contextMenus`），並更新隱私條款以說明 `scripting` 權限用途。

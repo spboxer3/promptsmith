@@ -45,6 +45,16 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.3.9
+
+- **FAB Cleanup**: Fixed "Ghost Icon" issue where floating buttons persisted after input elements were removed (e.g., in SPA switching).
+- **Error Handling**: Suppressed false-positive error badges in Chrome and improved error handling for orphaned scripts.
+- **Bug Fixes**: Fixed localhost validation support and preserved button icons during i18n translation.
+
+### v0.3.7
+
+- **Interaction Safety**: Prevented Enter key from triggering underlying website forms while Review UI or Loading state is active.
+
 ### v0.3.6
 
 - **Permissions & Policy**: Optimized manifest permissions (removed `activeTab`, `contextMenus`) and updated privacy policy to justify `scripting` usage.
