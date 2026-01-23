@@ -212,7 +212,11 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
         const merged = {
           ...builtin, // Base values (name, instruction, categoryId, etc.)
           linkedEndpointId: existing.linkedEndpointId || "", // Preserve user's endpoint choice
-          categoryId: existing.categoryId || builtin.categoryId || "", // Preserve user's category choice, fallback to builtin default
+          // Preserve user's category choice (even if empty string for 'Uncategorized'), fallback to builtin default only if undefined
+          categoryId:
+            existing.categoryId !== undefined
+              ? existing.categoryId
+              : builtin.categoryId || "",
         };
         // Only mark for persist if something changed
         if (JSON.stringify(stored[existingIndex]) !== JSON.stringify(merged)) {
