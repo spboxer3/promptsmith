@@ -12,7 +12,8 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 - **Local AI Support:** Seamlessly connect to local LLMs (e.g., via LM Studio, Ollama, LocalAI) for complete privacy and offline capability.
 - **Domain Whitelist:** Control where the extension activates. Pre-configured for popular AI tools (ChatGPT, Claude, Gemini, etc.) with support for custom domains and wildcards.
 - **Universal Compatibility:** Works on any website. Select text, invoke PromptSmith, and optimize instantly.
-- **Customizable Strategies:** creating tailored prompts ("Strategies") for specific tasks like "Fix Grammar," "Professional Tone," "Summarize," or "Code Review."
+- **Customizable Strategies:** Create tailored prompts ("Strategies") for specific tasks like "Fix Grammar," "Professional Tone," "Summarize," or "Code Review."
+- **Default Endpoint:** Set a global default endpoint and use it across multiple strategies. Change once, apply everywhere.
 - **Privacy-First:** Your API keys and data are stored locally in your browser. No middleman servers.
 - **Smart UI:** Minimalist floating review window, diff view for changes, and keyboard shortcuts (`Alt+P`) for rapid access.
 
@@ -44,6 +45,13 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 [Privacy Policy](Privacy%20Policy.md)
 
 ## Changelog
+
+### v0.4.0
+
+- **Default Endpoint:** Set a global default endpoint that can be shared across multiple strategies. Easily switch your preferred AI model in one place.
+- **Custom Dropdown UI:** Redesigned endpoint selector with gradient tag styling for better visual clarity.
+- **Star Button:** Quick one-click default endpoint selection with ★/☆ indicators in the endpoint list.
+- **Auto-Transfer:** When deleting the default endpoint, automatically transfers the default to the next available endpoint.
 
 ### v0.3.10
 
