@@ -112,5 +112,11 @@
     "message": "確定要刪除此分類嗎？使用此分類的策略將變為未分類。"
   },
   "lblFilterByCategory": { "message": "篩選分類：" },
-  "optionAllCategories": { "message": "所有分類" }
+  "optionAllCategories": { "message": "所有分類" },
+
+  "txtUseDefaultEndpoint": { "message": "使用預設端點" },
+  "txtCurrentDefault": { "message": "（目前：$1）" },
+  "btnSetDefault": { "message": "設為預設" },
+  "tagDefault": { "message": "預設" },
+  "confirmDeleteDefaultEndpoint": { "message": "這是預設端點，確定要刪除嗎？" }
 }

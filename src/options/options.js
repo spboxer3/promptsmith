@@ -645,9 +645,8 @@ function getStrategyForm(data) {
     </div>
     <div class="form-group">
       <label>${I18nService.t("lblLinkedEndpoint")}</label>
-      <select name="linkedEndpointId" id="endpointSelect">
-        <option>Loading...</option>
-      </select>
+      <div id="endpointDropdownContainer"></div>
+      <input type="hidden" name="linkedEndpointId" id="endpointSelectValue" value="${data.linkedEndpointId || ""}">
     </div>
     <div class="form-group">
       <label>${I18nService.t("lblCategory")}</label>
@@ -706,30 +705,155 @@ function getStrategyForm(data) {
   `;
 }
 
+/**
+ * Create a custom dropdown component with support for default endpoint option
+ */
+function createCustomDropdown(container, options, selectedValue, onChange) {
+  if (!container) return;
+  
+  const wrapper = document.createElement('div');
+  wrapper.className = 'custom-dropdown';
+  
+  // Find current selection display text
+  let displayText = I18nService.t("txtSelectEndpoint") || "-- Select Endpoint --";
+  let displayTag = null;
+  
+  for (const opt of options) {
+    if (opt.value === selectedValue) {
+      displayText = opt.label;
+      displayTag = opt.tag || null;
+      break;
+    }
+  }
+  
+  // Create trigger button
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'custom-dropdown-trigger';
+  trigger.innerHTML = `
+    <span class="trigger-content">
+      <span class="trigger-text">${displayText}</span>
+      ${displayTag ? `<span class="custom-dropdown-tag small">${displayTag}</span>` : ''}
+    </span>
+    <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+  `;
+  
+  // Create menu
+  const menu = document.createElement('div');
+  menu.className = 'custom-dropdown-menu';
+  
+  options.forEach(opt => {
+    const optionEl = document.createElement('div');
+    optionEl.className = 'custom-dropdown-option' + 
+      (opt.isDefault ? ' default-option' : '') +
+      (opt.value === selectedValue ? ' selected' : '');
+    optionEl.dataset.value = opt.value;
+    
+    optionEl.innerHTML = `
+      <span class="option-text">${opt.label}</span>
+      ${opt.tag ? `<span class="custom-dropdown-tag">${opt.tag}</span>` : ''}
+    `;
+    
+    optionEl.addEventListener('click', () => {
+      // Update hidden input
+      const hiddenInput = document.getElementById('endpointSelectValue');
+      if (hiddenInput) hiddenInput.value = opt.value;
+      
+      // Update trigger display
+      trigger.querySelector('.trigger-text').textContent = opt.label;
+      const existingTag = trigger.querySelector('.custom-dropdown-tag');
+      if (existingTag) existingTag.remove();
+      if (opt.tag) {
+        const tagEl = document.createElement('span');
+        tagEl.className = 'custom-dropdown-tag small';
+        tagEl.textContent = opt.tag;
+        trigger.querySelector('.trigger-content').appendChild(tagEl);
+      }
+      
+      // Update selected state
+      menu.querySelectorAll('.custom-dropdown-option').forEach(o => o.classList.remove('selected'));
+      optionEl.classList.add('selected');
+      
+      // Close dropdown
+      wrapper.classList.remove('open');
+      
+      // Callback
+      if (onChange) onChange(opt.value);
+    });
+    
+    menu.appendChild(optionEl);
+  });
+  
+  // Toggle dropdown
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    wrapper.classList.toggle('open');
+  });
+  
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) {
+      wrapper.classList.remove('open');
+    }
+  });
+  
+  wrapper.appendChild(trigger);
+  wrapper.appendChild(menu);
+  
+  container.innerHTML = '';
+  container.appendChild(wrapper);
+}
+
 async function populateEndpointSelect(selectedId) {
   const endpoints = await StorageService.getEndpoints();
-  const select = document.getElementById("endpointSelect");
-  if (!select) return;
-
-  const defaultOption = `<option value="">${I18nService.t(
-    "txtSelectEndpoint"
-  )}</option>`;
-
-  select.innerHTML =
-    defaultOption +
-    endpoints
-      .map(
-        (e) =>
-          `<option value="${e.id}" ${e.id === selectedId ? "selected" : ""}>${
-            e.name
-          }</option>`
-      )
-      .join("");
-
-  if (endpoints.length === 0) {
-    select.innerHTML =
-      '<option value="">No endpoints found. Create one first.</option>';
+  const config = await StorageService.getAppConfig();
+  const container = document.getElementById("endpointDropdownContainer");
+  if (!container) return;
+  
+  // Build options array
+  const options = [];
+  
+  // Get default endpoint name for display
+  let defaultEndpointName = '';
+  if (config.defaultEndpointId) {
+    const defaultEp = endpoints.find(e => e.id === config.defaultEndpointId);
+    if (defaultEp) defaultEndpointName = defaultEp.name;
+  } else if (endpoints.length > 0) {
+    defaultEndpointName = endpoints[0].name; // Fallback
   }
+  
+  // Add "Use Default Endpoint" option first
+  if (endpoints.length > 0) {
+    const defaultLabel = I18nService.t("txtUseDefaultEndpoint") || "Use Default Endpoint";
+    options.push({
+      value: "__default__",
+      label: defaultLabel,
+      tag: defaultEndpointName ? `${I18nService.t("tagDefault") || "Default"}: ${defaultEndpointName}` : null,
+      isDefault: true
+    });
+  }
+  
+  // Add all endpoints
+  endpoints.forEach(e => {
+    options.push({
+      value: e.id,
+      label: e.name,
+      tag: null,
+      isDefault: false
+    });
+  });
+  
+  // If no endpoints, show message
+  if (endpoints.length === 0) {
+    container.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 13px;">
+      ${I18nService.t("noStrategies") || "No endpoints found. Create one first."}
+    </div>`;
+    return;
+  }
+  
+  // Default to "__default__" for new strategies if no selection
+  const effectiveSelectedId = selectedId || "__default__";
+  createCustomDropdown(container, options, effectiveSelectedId);
 }
 
 // --- Logic ---
@@ -834,28 +958,37 @@ async function handleSave() {
 // --- Standard CRUD (Load/Delete) ---
 async function loadEndpoints() {
   const endpoints = await StorageService.getEndpoints();
+  const config = await StorageService.getAppConfig();
+  const defaultId = config.defaultEndpointId || (endpoints.length > 0 ? endpoints[0].id : "");
+  
   elements.endpointList.innerHTML = endpoints
     .map(
-      (e) => `
+      (e) => {
+        const isDefault = e.id === defaultId;
+        return `
     <div class="card">
       <div>
         <h3>${e.name} <span class="endpoint-tag">${
-        e.provider || "custom"
-      }</span></h3>
+          e.provider || "custom"
+        }</span>${isDefault ? ` <span class="custom-dropdown-tag small">${I18nService.t("tagDefault") || "Default"}</span>` : ''}</h3>
         <p>${e.url}</p>
       </div>
       <div class="endpoint-actions">
+        <button class="btn-set-default ${isDefault ? 'is-default' : ''}" data-action="setDefault" data-id="${e.id}" title="${I18nService.t("btnSetDefault") || "Set as Default"}">
+          ${isDefault ? '★' : '☆'}
+        </button>
         <button class="btn-secondary" data-action="edit" data-id="${
           e.id
         }">${I18nService.t("btnEdit")}</button>
         <button class="btn-secondary" data-action="delete" data-id="${
           e.id
         }" style="color:var(--danger);border-color:var(--border)">${I18nService.t(
-        "btnDelete"
-      )}</button>
+          "btnDelete"
+        )}</button>
       </div>
     </div>
-  `
+  `;
+      }
     )
     .join("");
 
@@ -864,15 +997,34 @@ async function loadEndpoints() {
     const btn = e.target.closest("button");
     if (!btn) return;
     const { action, id } = btn.dataset;
-    if (action === "edit")
+    
+    if (action === "setDefault") {
+      await StorageService.setDefaultEndpoint(id);
+      loadEndpoints(); // Refresh to update UI
+      showToast(I18nService.t("toastSaved") || "Saved successfully", "success");
+    }
+    
+    if (action === "edit") {
       openModal(
         "endpoint",
         endpoints.find((x) => x.id === id)
       );
+    }
+    
     if (action === "delete") {
-      if (confirm(I18nService.t("confirmDelete"))) {
+      const currentConfig = await StorageService.getAppConfig();
+      const isDeletingDefault = currentConfig.defaultEndpointId === id || 
+        (!currentConfig.defaultEndpointId && endpoints.length > 0 && endpoints[0].id === id);
+      
+      // Use different confirmation message for default endpoint
+      const confirmMsg = isDeletingDefault 
+        ? (I18nService.t("confirmDeleteDefaultEndpoint") || "This is the default endpoint. Delete it?")
+        : I18nService.t("confirmDelete");
+      
+      if (confirm(confirmMsg)) {
         await StorageService.deleteEndpoint(id);
         loadEndpoints();
+        showToast(I18nService.t("toastDeleted") || "Deleted successfully", "success");
       }
     }
   };

@@ -44,6 +44,7 @@ export const DEFAULT_APP_CONFIG = {
   whitelistEnabled: true, // Default whitelist mode enabled
   customDomains: [], // User's custom whitelist domains
   removedDefaultDomains: [], // Default domains user has removed
+  defaultEndpointId: "", // Default endpoint ID for strategies using "__default__"
 };
 
 export class StorageService {
@@ -92,12 +93,57 @@ export class StorageService {
 
   /**
    * Delete an Endpoint by ID.
+   * If the deleted endpoint is the default, transfer default to the first remaining endpoint.
    * @param {string} id
    */
   static async deleteEndpoint(id) {
     const endpoints = await this.getEndpoints();
+    const config = await this.getAppConfig();
+    
+    // Check if we're deleting the default endpoint
+    const isDeletingDefault = config.defaultEndpointId === id;
+    
     const filtered = endpoints.filter((e) => e.id !== id);
     await chrome.storage.local.set({ [KEYS.ENDPOINTS]: filtered });
+    
+    // If we deleted the default endpoint, transfer to first remaining or clear
+    if (isDeletingDefault) {
+      const newDefaultId = filtered.length > 0 ? filtered[0].id : "";
+      await this.saveAppConfig({ defaultEndpointId: newDefaultId });
+    }
+  }
+
+  /**
+   * Get the default endpoint.
+   * Falls back to the first endpoint if defaultEndpointId is invalid or empty.
+   * @returns {Promise<Object|null>} The default endpoint or null if no endpoints exist
+   */
+  static async getDefaultEndpoint() {
+    const config = await this.getAppConfig();
+    const endpoints = await this.getEndpoints();
+    
+    if (endpoints.length === 0) {
+      return null;
+    }
+    
+    // Try to find the configured default endpoint
+    if (config.defaultEndpointId) {
+      const defaultEndpoint = endpoints.find(e => e.id === config.defaultEndpointId);
+      if (defaultEndpoint) {
+        return defaultEndpoint;
+      }
+    }
+    
+    // Fallback: use the first endpoint
+    return endpoints[0];
+  }
+
+  /**
+   * Set an endpoint as the default.
+   * @param {string} id The endpoint ID to set as default
+   */
+  static async setDefaultEndpoint(id) {
+    await this.saveAppConfig({ defaultEndpointId: id });
   }
 
   /**

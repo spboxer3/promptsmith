@@ -116,5 +116,11 @@
     "message": "Delete this category? Strategies using it will become uncategorized."
   },
   "lblFilterByCategory": { "message": "Filter by Category:" },
-  "optionAllCategories": { "message": "All Categories" }
+  "optionAllCategories": { "message": "All Categories" },
+
+  "txtUseDefaultEndpoint": { "message": "Use Default Endpoint" },
+  "txtCurrentDefault": { "message": "(Current: $1)" },
+  "btnSetDefault": { "message": "Set as Default" },
+  "tagDefault": { "message": "Default" },
+  "confirmDeleteDefaultEndpoint": { "message": "This is the default endpoint. Are you sure you want to delete it?" }
 }

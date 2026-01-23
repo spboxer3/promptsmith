@@ -157,7 +157,17 @@ async function handleOptimization(strategyId, context, injector, ui) {
     }
 
     const endpoints = await StorageService.getEndpoints();
-    const endpoint = endpoints.find((e) => e.id === strategy.linkedEndpointId);
+    
+    // Resolve endpoint - handle "__default__" special value
+    let endpoint;
+    if (strategy.linkedEndpointId === "__default__" || !strategy.linkedEndpointId) {
+      // Use default endpoint
+      endpoint = await StorageService.getDefaultEndpoint();
+    } else {
+      // Use specifically linked endpoint
+      endpoint = endpoints.find((e) => e.id === strategy.linkedEndpointId);
+    }
+    
     if (!endpoint) {
       throw new Error("Endpoint not found for this strategy.");
     }
