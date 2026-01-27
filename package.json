@@ -1,0 +1,9 @@
+{
+  "name": "promptsmith-tests",
+  "version": "1.0.0",
+  "description": "Test suite for PromptSmith",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/test_whitelist.js"
+  }
+}
