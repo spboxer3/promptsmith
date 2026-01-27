@@ -91,3 +91,54 @@ h1 {
   line-height: 1.5;
   margin: 0;
 }
+
+/* --- Whitelist Section --- */
+.whitelist-section {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: block;
+}
+
+.whitelist-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.whitelist-action-btn {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.whitelist-action-btn.add {
+  background-color: #e2e8f0;
+  color: var(--text-main);
+}
+
+.whitelist-action-btn.add:hover {
+  background-color: #cbd5e1;
+}
+
+.whitelist-action-btn.remove {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.whitelist-action-btn.remove:hover {
+  background-color: #fecaca;
+}

@@ -122,5 +122,9 @@
   "txtCurrentDefault": { "message": "(Current: $1)" },
   "btnSetDefault": { "message": "Set as Default" },
   "tagDefault": { "message": "Default" },
-  "confirmDeleteDefaultEndpoint": { "message": "This is the default endpoint. Are you sure you want to delete it?" }
+  "confirmDeleteDefaultEndpoint": { "message": "This is the default endpoint. Are you sure you want to delete it?" },
+  "headerWhitelistAdd": { "message": "Add to Whitelist" },
+  "headerWhitelistRemove": { "message": "Site is Whitelisted" },
+  "btnRemoveFromWhitelist": { "message": "Remove from Whitelist" },
+  "txtMatchedRule": { "message": "Matched Rule: $1" }
 }

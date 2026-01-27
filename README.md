@@ -46,6 +46,10 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.4.1
+
+- **Quick Whitelist**: Add or remove sites from the whitelist directly via the popup interface. Supports managing both custom domains and default supported sites (e.g., restoring removed defaults).
+
 ### v0.4.0
 
 - **Default Endpoint:** Set a global default endpoint that can be shared across multiple strategies. Easily switch your preferred AI model in one place.

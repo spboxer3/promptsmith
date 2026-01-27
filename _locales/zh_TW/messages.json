@@ -118,5 +118,9 @@
   "txtCurrentDefault": { "message": "（目前：$1）" },
   "btnSetDefault": { "message": "設為預設" },
   "tagDefault": { "message": "預設" },
-  "confirmDeleteDefaultEndpoint": { "message": "這是預設端點，確定要刪除嗎？" }
+  "confirmDeleteDefaultEndpoint": { "message": "這是預設端點，確定要刪除嗎？" },
+  "headerWhitelistAdd": { "message": "加入白名單" },
+  "headerWhitelistRemove": { "message": "此網站已在白名單中" },
+  "btnRemoveFromWhitelist": { "message": "從白名單移除" },
+  "txtMatchedRule": { "message": "符合規則：$1" }
 }
