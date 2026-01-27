@@ -11,6 +11,14 @@ export class DomainMatcher {
   static patternToRegex(pattern) {
     // Remove http/https prefix if present
     pattern = pattern.replace(/^https?:\/\//, "");
+
+    // Handle *. prefix: *.domain.com should match domain.com and sub.domain.com
+    if (pattern.startsWith("*.")) {
+      const root = pattern.slice(2);
+      const escapedRoot = root.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`^(?:.*\\.)?${escapedRoot}$`, "i");
+    }
+
     // Escape special regex characters, then convert * to regex .*
     const escaped = pattern
       .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
