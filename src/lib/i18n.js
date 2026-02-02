@@ -79,11 +79,12 @@ export class I18nService {
    * @param {HTMLElement} root - The root element to search within
    */
   static apply(root = document) {
-    const elements = root.querySelectorAll("[data-i18n]");
+    const elements = root.querySelectorAll("[data-i18n], [data-i18n-attrs]");
     elements.forEach((el) => {
       const key = el.getAttribute("data-i18n");
-      const text = this.t(key);
-      if (text) {
+      // Only set textContent if data-i18n is present
+      if (key) {
+        const text = this.t(key);
         // Smart Replacement: Preserve Icons
         let replaced = false;
 

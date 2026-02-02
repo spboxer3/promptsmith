@@ -44,12 +44,52 @@ function initHistoryTab() {
   const listContainer = document.getElementById("historyList");
   const searchInput = document.getElementById("historySearch");
   const clearBtn = document.getElementById("clearHistoryBtn");
+  
+  // Custom Dropdown Elements
+  const dropdown = document.getElementById("historyStrategyDropdown");
+  const dropdownTrigger = dropdown.querySelector(".custom-dropdown-trigger");
+  const dropdownMenu = dropdown.querySelector(".custom-dropdown-menu");
+  const dropdownText = dropdown.querySelector(".trigger-text");
+  
+  let currentStrategyFilter = ""; // State for selected filter
 
-  const renderHistory = async (query = "") => {
+  const renderHistory = async (query = "", strategy = "") => {
     try {
-      const items = await StorageService.getHistory({ query });
+      const items = await StorageService.getHistory({ query, strategy });
       listContainer.innerHTML = "";
       
+      // Populate Dropdown Options (based on ALL history)
+      // Only if menu is empty to persist selection state easily
+      // But we should refresh if new strategies appear? For now, refresh on clear/load.
+      if (dropdownMenu.children.length === 0) {
+          const allHistory = await StorageService.getHistory(); 
+          const strategies = new Set(allHistory.map(i => i.strategy).filter(Boolean));
+          const sorted = Array.from(strategies).sort();
+          
+          dropdownMenu.innerHTML = "";
+          
+          // "All Strategies" Option
+          const allOption = document.createElement("div");
+          allOption.className = "custom-dropdown-option";
+          if (strategy === "") allOption.classList.add("selected");
+          allOption.innerHTML = `<span class="option-text" data-i18n="placeholderFilterStrategy">Filter by strategy...</span>`;
+          allOption.onclick = () => {
+              selectStrategy("", I18nService.t("placeholderFilterStrategy") || "Filter by strategy...");
+          };
+          dropdownMenu.appendChild(allOption);
+          
+          sorted.forEach(s => {
+             const opt = document.createElement("div");
+             opt.className = "custom-dropdown-option";
+             if (s === strategy) opt.classList.add("selected");
+             opt.innerHTML = `<span class="option-text">${escapeHtml(s)}</span>`;
+             opt.onclick = () => {
+                 selectStrategy(s, s);
+             };
+             dropdownMenu.appendChild(opt);
+          });
+      }
+
       if (items.length === 0) {
         listContainer.innerHTML = `
           <div style="text-align:center; padding: 40px; color: var(--text-muted);">
@@ -124,22 +164,59 @@ function initHistoryTab() {
     }
   };
 
+  // Dropdown Logic
+  const selectStrategy = (value, label) => {
+      currentStrategyFilter = value;
+      dropdownText.textContent = label;
+      dropdown.classList.remove("open");
+      
+      // Update Selection UI
+      const options = dropdownMenu.querySelectorAll(".custom-dropdown-option");
+      options.forEach(opt => {
+         if (opt.textContent === label) {
+             opt.classList.add("selected");
+         } else {
+             opt.classList.remove("selected");
+         }
+      });
+      
+      renderHistory(searchInput.value, currentStrategyFilter);
+  };
+  
+  dropdownTrigger.onclick = (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("open");
+  };
+  
+  // Close dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove("open");
+      }
+  });
+
+
   // Initial Render
   renderHistory();
 
   // Search
   let debounce;
-  searchInput.oninput = (e) => {
+  const handleInput = () => {
     clearTimeout(debounce);
     debounce = setTimeout(() => {
-        renderHistory(e.target.value);
+        renderHistory(searchInput.value, currentStrategyFilter);
     }, 300);
   };
+
+  searchInput.oninput = handleInput;
 
   // Clear All
   clearBtn.onclick = async () => {
     if (confirm("Are you sure you want to delete ALL history records? This cannot be undone.")) {
         await StorageService.clearHistory();
+        currentStrategyFilter = ""; // Reset filter
+        dropdownText.innerText = I18nService.t("placeholderFilterStrategy") || "Filter by strategy...";
+        dropdownMenu.innerHTML = ""; // Clear dropdown cache
         renderHistory();
         showToast("History cleared", "success");
     }

@@ -125,9 +125,11 @@
   "txtMatchedRule": { "message": "符合規則：$1" },
   "navHistory": { "message": "歷史紀錄" },
   "sectionHistory": { "message": "歷史紀錄" },
-  "placeholderSearchHistory": { "message": "搜尋紀錄..." },
+  "placeholderSearchHistory": { "message": "搜尋歷史紀錄..." },
   "noHistory": { "message": "目前沒有任何歷史紀錄。" },
   "btnClearHistory": { "message": "清除全部" },
   "lblOriginal": { "message": "原始內容" },
-  "lblOptimized": { "message": "優化結果" }
+  "lblOptimized": { "message": "優化結果" },
+  "hintRetention": { "message": "歷史紀錄儲存於本地端，並保留 7 天。" },
+  "placeholderFilterStrategy": { "message": "篩選策略..." }
 }

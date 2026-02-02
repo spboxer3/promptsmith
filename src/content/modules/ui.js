@@ -211,6 +211,122 @@ export class UIManager {
         box-sizing: border-box;
       }
 
+      .history-header {
+        border-radius: 20px;
+        margin-bottom: 12px;
+      }
+      
+      .history-list {
+        border-radius: 20px;
+        overflow: hidden; /* Ensure content obeys radius */
+      }
+      
+      .history-search-container {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 8px; /* Gap between elements */
+      }
+      
+      /* Custom Dropdown in Shadow DOM */
+      .custom-dropdown {
+        position: relative;
+        width: 140px; /* Default width */
+        z-index: 100;
+      }
+      
+      .custom-dropdown-trigger {
+        width: 100%;
+        padding: 8px 12px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 13px;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+      }
+      .custom-dropdown-trigger:hover { border-color: var(--text-muted); }
+      .custom-dropdown-trigger:focus { outline: none; border-color: var(--primary); }
+      
+      .custom-dropdown-trigger .trigger-content {
+          flex: 1; min-width: 0; overflow: hidden;
+      }
+      .custom-dropdown-trigger .trigger-text {
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+      }
+      .custom-dropdown-trigger .dropdown-arrow {
+          font-size: 10px; color: var(--text-muted); transition: transform 0.2s;
+      }
+      
+      .custom-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
+      
+      .custom-dropdown-menu {
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        margin-top: 4px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+      }
+      .custom-dropdown.open .custom-dropdown-menu { display: block; }
+      
+      .custom-dropdown-option {
+        padding: 8px 12px;
+        cursor: pointer;
+        display: flex; align-items: center; gap: 8px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-main);
+      }
+      .custom-dropdown-option:last-child { border-bottom: none; }
+      .custom-dropdown-option:hover { background-color: #f1f5f9; }
+      .custom-dropdown-option.selected { background-color: rgba(59, 130, 246, 0.08); }
+      .custom-dropdown-option .option-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+      /* Search Input Style adjustment to match */
+      .history-search-wrapper {
+          position: relative;
+          flex: 1;
+          display: flex;
+          align-items: center;
+      }
+      .history-search-icon {
+          position: absolute;
+          left: 10px;
+          color: var(--text-muted);
+          pointer-events: none;
+          z-index: 10;
+      }
+      .history-search {
+          width: 100%;
+          padding: 8px 12px 8px 32px; /* Left padding for icon */
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          color: var(--text-main);
+          font-size: 13px;
+          outline: none;
+          transition: border-color 0.2s;
+          box-sizing: border-box;
+      }
+      .history-search:focus {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+
       .menu-item:hover, .menu-item:focus, .menu-item.selected {
         background: #eff6ff;
         color: var(--primary);
@@ -1716,23 +1832,61 @@ export class UIManager {
     modal.className = "history-modal";
     
     modal.innerHTML = `
-      <div class="history-header">
-        <div class="history-search-container">
-          <i class="fa-solid fa-magnifying-glass history-search-icon"></i>
-          <input type="text" class="history-search" placeholder="${I18nService.t("placeholderSearchHistory") || "Search history..."}">
+        <div class="history-header">
+          <div class="history-search-container">
+            <!-- Custom Dropdown -->
+            <div class="custom-dropdown" id="historyStrategyDropdown">
+               <button class="custom-dropdown-trigger" type="button">
+                  <span class="trigger-content">
+                     <span class="trigger-text">${I18nService.t("placeholderFilterStrategy") || "Filter..."}</span>
+                  </span>
+                  <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+               </button>
+               <div class="custom-dropdown-menu"></div>
+            </div>
+
+            <!-- Search Wrapper -->
+            <div class="history-search-wrapper">
+               <i class="fa-solid fa-magnifying-glass history-search-icon"></i>
+               <input type="text" class="history-search" placeholder="${I18nService.t("placeholderSearchHistory") || "Search history..."}">
+            </div>
+          </div>
+          <button class="diff-close" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
         </div>
-        <button class="diff-close" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
-      </div>
-      <div class="history-list">
-        <div class="spinner" style="margin: 20px auto;"></div>
-      </div>
-    `;
+        <div class="history-list">
+          <div class="spinner" style="margin: 20px auto;"></div>
+        </div>
+      `;
     
     this.shadow.appendChild(overlay);
     this.shadow.appendChild(modal);
     
+    // Custom Dropdown Logic
+    const dropdown = modal.querySelector(".custom-dropdown");
+    const dropdownTrigger = dropdown.querySelector(".custom-dropdown-trigger");
+    const dropdownMenu = dropdown.querySelector(".custom-dropdown-menu");
+    const dropdownText = dropdown.querySelector(".trigger-text");
+    let currentFilter = "";
+    
+    const toggleDropdown = (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("open");
+    };
+    dropdownTrigger.onclick = toggleDropdown;
+    
+    const closeDropdown = (e) => {
+       if (!dropdown.contains(e.composedPath()[0])) {
+           dropdown.classList.remove("open");
+       }
+    };
+    
+    // Use click on shadow root to handle clicks outside
+    this.shadow.addEventListener("click", closeDropdown);
+    
+    
     // Close Logic
     const close = () => {
+      this.shadow.removeEventListener("click", closeDropdown);
       modal.remove();
       overlay.remove();
       document.removeEventListener("keydown", keyHandler, true);
@@ -1747,6 +1901,7 @@ export class UIManager {
          close();
       }
     };
+    // Use capture to prevent other handlers
     document.addEventListener("keydown", keyHandler, true);
     
     // Load Data
@@ -1781,12 +1936,8 @@ export class UIManager {
             // Restore this result
             // Define action: Copy? Or Re-open Diff?
             // Let's re-open Diff in "Review Mode" (read only? or allow apply if editable context found?)
-            // Since we can't easily link back to original element if it's gone or scrolled,
-            // let's just open the Review Modal with this content, detached from element context if needed,
-            // OR just copy to clipboard.
-            
-            // Better UX: Open Review Modal. If we have a valid last active element, try to use it.
-            // If not, just show Diff for "Copying".
+            // If user wants edit, we need textarea. But user complained about textarea look.
+            // Assuming read-only for now based on "disfigured" complaint about inputs.
             
             // For now: Just copy to clipboard with toast, easiest v1
             navigator.clipboard.writeText(item.optimizedResult);
@@ -1800,19 +1951,64 @@ export class UIManager {
     
     // Initial Load
     try {
-        const history = await StorageService.getHistory();
+        const history = await StorageService.getHistory(); // Get all to populate dropdown
+        
+        // Populate Dropdown
+        const strategies = new Set(history.map(i => i.strategy).filter(Boolean));
+        const sorted = Array.from(strategies).sort();
+        
+        dropdownMenu.innerHTML = "";
+        
+        // All Option
+        const allOption = document.createElement("div");
+        allOption.className = "custom-dropdown-option selected";
+        allOption.innerHTML = `<span class="option-text">${I18nService.t("placeholderFilterStrategy") || "Filter..."}</span>`;
+        allOption.onclick = () => {
+            currentFilter = "";
+            dropdownText.textContent = I18nService.t("placeholderFilterStrategy") || "Filter...";
+            dropdown.classList.remove("open");
+            // Highlight
+            dropdownMenu.querySelectorAll(".custom-dropdown-option").forEach(d => d.classList.remove("selected"));
+            allOption.classList.add("selected");
+            // Re-fetch
+            refreshList();
+        };
+        dropdownMenu.appendChild(allOption);
+        
+        sorted.forEach(s => {
+            const opt = document.createElement("div");
+            opt.className = "custom-dropdown-option";
+            opt.innerHTML = `<span class="option-text">${this.escapeHtml(s)}</span>`;
+            opt.onclick = () => {
+                currentFilter = s;
+                dropdownText.textContent = s;
+                dropdown.classList.remove("open");
+                // Highlight
+                dropdownMenu.querySelectorAll(".custom-dropdown-option").forEach(d => d.classList.remove("selected"));
+                opt.classList.add("selected");
+                // Re-fetch
+                refreshList();
+            };
+            dropdownMenu.appendChild(opt);
+        });
+        
         renderList(history);
+        
+        // Refresh Helper
+        const refreshList = async () => {
+             const query = searchInput.value;
+             const filtered = await StorageService.getHistory({ query, strategy: currentFilter });
+             renderList(filtered);
+        };
         
         // Search Binder
         let debounce;
-        searchInput.oninput = (e) => {
+        const handleInput = () => {
             clearTimeout(debounce);
-            debounce = setTimeout(async () => {
-                const query = e.target.value;
-                const filtered = await StorageService.getHistory({ query });
-                renderList(filtered);
-            }, 300);
+            debounce = setTimeout(refreshList, 300);
         };
+
+        searchInput.oninput = handleInput;
         
         searchInput.focus(); // Auto focus
         

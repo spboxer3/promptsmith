@@ -133,5 +133,7 @@
   "noHistory": { "message": "No history records found." },
   "btnClearHistory": { "message": "Clear All" },
   "lblOriginal": { "message": "ORIGINAL" },
-  "lblOptimized": { "message": "OPTIMIZED" }
+  "lblOptimized": { "message": "OPTIMIZED" },
+  "hintRetention": { "message": "History is stored locally and kept for 7 days." },
+  "placeholderFilterStrategy": { "message": "Filter by strategy..." }
 }

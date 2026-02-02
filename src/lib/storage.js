@@ -405,7 +405,7 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
    * @param {number} [options.limit] - Max number of items to return
    * @returns {Promise<Array>}
    */
-  static async getHistory({ query = "", limit = 0 } = {}) {
+  static async getHistory({ query = "", limit = 0, strategy = "" } = {}) {
     const result = await chrome.storage.local.get(KEYS.HISTORY);
     let list = result[KEYS.HISTORY] || [];
 
@@ -419,6 +419,11 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
         (item.originalText && item.originalText.toLowerCase().includes(q)) ||
         (item.optimizedResult && item.optimizedResult.toLowerCase().includes(q))
       );
+    }
+    
+    // Filter by strategy
+    if (strategy) {
+        list = list.filter(item => item.strategy === strategy);
     }
 
     // Apply limit

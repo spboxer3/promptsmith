@@ -46,6 +46,13 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.5.1
+
+- **UI Polish**: Unified dropdown styles across Floating Menu and Options Page for a consistent premium feel.
+- **Improved Filtering**: Moved history filters in Options Page for better accessibility and layout.
+- **Localization**: Fixed missing translations for placeholders in history search.
+- **Layout Fixes**: Corrected icon alignment issues in the floating menu.
+
 ### v0.5.0
 
 - **History Feature**: Automatically saves your optimization history locally for 7 days.
