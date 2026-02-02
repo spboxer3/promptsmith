@@ -122,5 +122,12 @@
   "headerWhitelistAdd": { "message": "加入白名單" },
   "headerWhitelistRemove": { "message": "此網站已在白名單中" },
   "btnRemoveFromWhitelist": { "message": "從白名單移除" },
-  "txtMatchedRule": { "message": "符合規則：$1" }
+  "txtMatchedRule": { "message": "符合規則：$1" },
+  "navHistory": { "message": "歷史紀錄" },
+  "sectionHistory": { "message": "歷史紀錄" },
+  "placeholderSearchHistory": { "message": "搜尋紀錄..." },
+  "noHistory": { "message": "目前沒有任何歷史紀錄。" },
+  "btnClearHistory": { "message": "清除全部" },
+  "lblOriginal": { "message": "原始內容" },
+  "lblOptimized": { "message": "優化結果" }
 }

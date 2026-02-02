@@ -225,6 +225,14 @@ async function handleOptimization(strategyId, context, injector, ui) {
 
     // Diff Confirmation
     console.log("[PromptSmith] Showing Diff UI...");
+    // Save to History
+    StorageService.addHistoryItem({
+      originalText: context.text,
+      optimizedResult: resultText,
+      endpoint: endpoint.name,
+      strategy: strategy.name,
+    }).catch((err) => console.error("[PromptSmith] Failed to save history:", err));
+
     // Diff Confirmation
     console.log("[PromptSmith] Showing Diff UI...");
     ui.showDiff(

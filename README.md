@@ -46,6 +46,13 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.5.0
+
+- **History Feature**: Automatically saves your optimization history locally for 7 days.
+- **History UI**: A new premium interface in the Options page to search, review, and copy past optimizations.
+- **Quick Access**: Access recent history directly from the floating menu via the new clock icon.
+
+
 ### v0.4.1
 
 - **Quick Whitelist**: Add or remove sites from the whitelist directly via the popup interface. Supports managing both custom domains and default supported sites (e.g., restoring removed defaults).

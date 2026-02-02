@@ -28,6 +28,152 @@ const elements = {
   closeModalBtns: document.querySelectorAll(".close-modal"),
 };
 
+// --- History Logic ---
+
+// Helper to escape HTML for safe display
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function initHistoryTab() {
+  const listContainer = document.getElementById("historyList");
+  const searchInput = document.getElementById("historySearch");
+  const clearBtn = document.getElementById("clearHistoryBtn");
+
+  const renderHistory = async (query = "") => {
+    try {
+      const items = await StorageService.getHistory({ query });
+      listContainer.innerHTML = "";
+      
+      if (items.length === 0) {
+        listContainer.innerHTML = `
+          <div style="text-align:center; padding: 40px; color: var(--text-muted);">
+            <i class="fa-solid fa-clock-rotate-left" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5;"></i>
+            <p>${I18nService.t("noHistory") || "No history records found."}</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "history-card";
+        
+        const timeStr = new Date(item.timestamp).toLocaleString();
+        const strategyName = escapeHtml(item.strategy || "Unknown Strategy");
+        const endpointName = escapeHtml(item.endpoint || "Unknown Endpoint");
+
+        card.innerHTML = `
+          <!-- Header -->
+          <div class="history-header-row">
+             <span class="history-strategy-badge">
+               <i class="fa-solid fa-wand-magic-sparkles"></i> ${strategyName}
+             </span>
+             <span class="history-time">${timeStr}</span>
+          </div>
+          
+          <!-- Body -->
+          <div class="history-body-row">
+             <!-- Original Column -->
+             <div class="history-col original">
+                <div class="col-label"><i class="fa-regular fa-file-lines"></i> ${I18nService.t("lblOriginal") || "ORIGINAL"}</div>
+                <div class="col-content">${escapeHtml(item.originalText)}</div>
+             </div>
+             
+             <!-- Optimized Column -->
+             <div class="history-col optimized">
+                <div class="col-label opt"><i class="fa-solid fa-check"></i> ${I18nService.t("lblOptimized") || "OPTIMIZED"}</div>
+                <div class="col-content">${escapeHtml(item.optimizedResult)}</div>
+             </div>
+          </div>
+          
+          <!-- Footer -->
+          <div class="history-footer-row">
+             <span class="endpoint-info">
+                <i class="fa-solid fa-server"></i> ${endpointName}
+             </span>
+             <div class="history-actions">
+                <button class="btn-secondary copy-btn" title="${I18nService.t("btnCopy") || "Copy Result"}">
+                   <i class="fa-regular fa-copy"></i> ${I18nService.t("btnCopy") || "Copy"}
+                </button>
+             </div>
+          </div>
+        `;
+
+        // Bind Copy
+        const copyBtn = card.querySelector(".copy-btn");
+        if(copyBtn) {
+            copyBtn.onclick = () => {
+                 navigator.clipboard.writeText(item.optimizedResult).then(() => {
+                     showToast(I18nService.t("tooltipCopied") || "Copied to clipboard", "success");
+                 });
+            };
+        }
+        
+        listContainer.appendChild(card);
+      });
+
+    } catch (e) {
+      console.error("Error loading history:", e);
+      showToast("Error loading history", "danger");
+    }
+  };
+
+  // Initial Render
+  renderHistory();
+
+  // Search
+  let debounce;
+  searchInput.oninput = (e) => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+        renderHistory(e.target.value);
+    }, 300);
+  };
+
+  // Clear All
+  clearBtn.onclick = async () => {
+    if (confirm("Are you sure you want to delete ALL history records? This cannot be undone.")) {
+        await StorageService.clearHistory();
+        renderHistory();
+        showToast("History cleared", "success");
+    }
+  };
+}
+
+// Global Toast (reusing existing if available, or simple impl)
+function showToast(message, type = "info") {
+    // Assuming UI.js logic isn't available here, reuse simple toast logic specific to Options page
+    // Check if ui.js or independent options.js toast exists.
+    // Looking at options.html/css, no specific toast structure seen, but let's check options.js context.
+    // ...
+    // Let's verify if options.js has a showToast function.
+    const toastContainer = document.getElementById("toastContainer");
+    if (!toastContainer) {
+        console.warn("Toast container not found. Cannot display toast:", message);
+        return;
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 10); // Small delay to trigger CSS transition
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        toast.addEventListener("transitionend", () => toast.remove());
+    }, 3000);
+}
+
 let currentModalMode = null; // 'endpoint' or 'strategy'
 let currentEditId = null;
 
@@ -43,6 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadStrategies();
   await loadSettings();
   await loadWhitelistSettings(); // Load whitelist settings
+  initHistoryTab(); // Initialize History Tab
 
   // Single Source of Truth: Inject Version from Manifest
   const manifest = chrome.runtime.getManifest();
@@ -1184,22 +1331,7 @@ function closeModal() {
   currentEditId = null;
 }
 
-function showToast(message, type = "info") {
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
 
-  // Force reflow
-  toast.offsetHeight;
-
-  toast.classList.add("visible");
-
-  setTimeout(() => {
-    toast.classList.remove("visible");
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
 
 /**
  * Show a confirmation toast with Confirm/Cancel buttons

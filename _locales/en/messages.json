@@ -126,5 +126,12 @@
   "headerWhitelistAdd": { "message": "Add to Whitelist" },
   "headerWhitelistRemove": { "message": "Site is Whitelisted" },
   "btnRemoveFromWhitelist": { "message": "Remove from Whitelist" },
-  "txtMatchedRule": { "message": "Matched Rule: $1" }
+  "txtMatchedRule": { "message": "Matched Rule: $1" },
+  "navHistory": { "message": "History" },
+  "sectionHistory": { "message": "History Records" },
+  "placeholderSearchHistory": { "message": "Search history..." },
+  "noHistory": { "message": "No history records found." },
+  "btnClearHistory": { "message": "Clear All" },
+  "lblOriginal": { "message": "ORIGINAL" },
+  "lblOptimized": { "message": "OPTIMIZED" }
 }

@@ -8,6 +8,7 @@ export const KEYS = {
   ENDPOINTS: "endpoints",
   STRATEGIES: "strategies",
   CATEGORIES: "categories",
+  HISTORY: "history_records",
 };
 
 // Default categories for organizing strategies
@@ -364,5 +365,75 @@ Optimized: "A majestic orange tabby cat floating gracefully in zero gravity, sur
     }
 
     await chrome.storage.local.set(cleanData);
+  }
+
+  // --- History Methods ---
+
+  /**
+   * Add a new history item.
+   * Auto-prunes items older than 7 days.
+   * @param {Object} item - { originalText, optimizedResult, endpoint, strategy }
+   * @returns {Promise<void>}
+   */
+  static async addHistoryItem(item) {
+    const list = await this.getHistory();
+    
+    // Create new record
+    const newItem = {
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      originalText: item.originalText || "",
+      optimizedResult: item.optimizedResult || "",
+      endpoint: item.endpoint || "",
+      strategy: item.strategy || "",
+    };
+
+    // Prepend new item
+    const updatedList = [newItem, ...list];
+
+    // Prune items older than 7 days
+    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const prunedList = updatedList.filter(r => r.timestamp > sevenDaysAgo);
+
+    await chrome.storage.local.set({ [KEYS.HISTORY]: prunedList });
+  }
+
+  /**
+   * Get history records with optional search and limit.
+   * @param {Object} options
+   * @param {string} [options.query] - Search query (searches originalText and optimizedResult)
+   * @param {number} [options.limit] - Max number of items to return
+   * @returns {Promise<Array>}
+   */
+  static async getHistory({ query = "", limit = 0 } = {}) {
+    const result = await chrome.storage.local.get(KEYS.HISTORY);
+    let list = result[KEYS.HISTORY] || [];
+
+    // Sort by timestamp descending (newest first)
+    list.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Filter by query
+    if (query) {
+      const q = query.toLowerCase();
+      list = list.filter(item => 
+        (item.originalText && item.originalText.toLowerCase().includes(q)) ||
+        (item.optimizedResult && item.optimizedResult.toLowerCase().includes(q))
+      );
+    }
+
+    // Apply limit
+    if (limit > 0) {
+      list = list.slice(0, limit);
+    }
+
+    return list;
+  }
+
+  /**
+   * Clear all history.
+   * @returns {Promise<void>}
+   */
+  static async clearHistory() {
+    await chrome.storage.local.remove(KEYS.HISTORY);
   }
 }

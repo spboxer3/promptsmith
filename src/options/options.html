@@ -30,6 +30,10 @@
                     <span class="icon"><i class="fa-solid fa-gear"></i></span> <span
                         data-i18n="navSettings">Settings</span>
                 </button>
+                <button class="nav-item" data-tab="history">
+                    <span class="icon"><i class="fa-solid fa-clock-rotate-left"></i></span> <span
+                        data-i18n="navHistory">History</span>
+                </button>
             </nav>
         </aside>
 
@@ -218,8 +222,31 @@
                         </div>
                     </div>
             </section>
+            </section>
+
+            <!-- History Tab -->
+            <section id="history" class="tab-content">
+                <header class="section-header">
+                    <h2 data-i18n="sectionHistory">History Records</h2>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="historySearch" placeholder="Search history..."
+                            data-i18n-attrs="placeholder=placeholderSearchHistory"
+                            style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;">
+                        <button id="clearHistoryBtn" class="btn-secondary" data-i18n="btnClearHistory"
+                            style="color: var(--danger); border-color: var(--danger);">
+                            <i class="fa-solid fa-trash-can"></i> Clear All
+                        </button>
+                    </div>
+                </header>
+                <div id="historyList" class="card-list">
+                    <!-- History Rendered Here -->
+                </div>
+            </section>
         </main>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
 
     <!-- Modal Template -->
     <div id="modalOverlay" class="modal-overlay hidden">

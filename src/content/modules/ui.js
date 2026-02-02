@@ -500,6 +500,123 @@ export class UIManager {
         visibility: visible;
         top: -35px;
       }
+
+      /* --- History Modal --- */
+      .history-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0;
+        width: 600px;
+        max-width: 90vw;
+        max-height: 80vh;
+        box-shadow: var(--shadow-lg);
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        z-index: 2147483647;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .history-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .history-search-container {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      
+      .history-search {
+        width: 100%;
+        padding: 8px 12px 8px 32px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .history-search:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
+      
+      .history-search-icon {
+        position: absolute;
+        left: 10px;
+        color: var(--text-muted);
+        font-size: 12px;
+        pointer-events: none;
+      }
+      
+      .history-list {
+        overflow-y: auto;
+        padding: 8px 0;
+        flex: 1;
+        min-height: 200px;
+        background: var(--bg-card);
+      }
+
+      .history-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        transition: background 0.15s;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .history-item:last-child {
+        border-bottom: none;
+      }
+      .history-item:hover {
+        background: #f8fafc;
+      }
+      
+      .history-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      
+      .history-strategy-tag {
+        background: #eff6ff;
+        color: var(--primary);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+      
+      .history-preview {
+        font-size: 13px;
+        color: var(--text-main);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.5;
+      }
+      
+      .history-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
     `;
     this.shadow.appendChild(style);
   }
@@ -849,13 +966,21 @@ export class UIManager {
 
     menu.innerHTML = `
       <div class="menu-header">
-        <span>${I18nService.t("menuTitle")}</span>
+        <span style="flex:1;">${I18nService.t("menuTitle")}</span>
+        
+        <!-- History Icon -->
+        <span id="historyIcon" style="cursor: pointer; opacity: 0.7; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-right: 4px;" title="History">
+           <i class="fa-solid fa-clock-rotate-left" style="font-size: 14px;"></i>
+        </span>
+
+        <!-- Settings Icon -->
         <span id="settingsIcon" style="cursor: pointer; opacity: 0.7; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;" title="${I18nService.t(
           "navSettings"
         )}">
           <svg viewBox="0 0 512 512" style="width: 14px; height: 14px; fill: currentColor;"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>
         </span>
       </div>
+
       <div class="menu-items">
         <!-- Items injected here -->
       </div>
@@ -880,6 +1005,25 @@ export class UIManager {
         }
         this.hideMenu();
       };
+    }
+    
+    const historyIcon = menu.querySelector("#historyIcon");
+    if (historyIcon) {
+        historyIcon.onmouseover = () => {
+            historyIcon.style.opacity = "1";
+            historyIcon.style.color = "var(--primary)";
+        };
+        historyIcon.onmouseout = () => {
+            historyIcon.style.opacity = "0.7";
+            historyIcon.style.color = "inherit";
+        };
+        historyIcon.onclick = (e) => {
+            e.stopPropagation();
+            this.hideMenu();
+            // Call showHistoryModal (we'll implement it next, passing context for any positioning if needed, though modal is fixed)
+            console.log("[PromptSmith] Opening History Modal");
+            this.showHistoryModal(); 
+        };
     }
 
     const itemsContainer = menu.querySelector(".menu-items");
@@ -1558,6 +1702,135 @@ export class UIManager {
     if (applyBtn) applyBtn.textContent = I18nService.t("btnApply");
 
     console.log("[PromptSmith] Diff language refreshed");
+  }
+
+  async showHistoryModal() {
+    this.hideFab();
+    if (this.currentDiffModal) this.hideDiff();
+    
+    const overlay = document.createElement("div");
+    overlay.className = "diff-overlay";
+    overlay.style.zIndex = "2147483648"; // Higher than review modal
+    
+    const modal = document.createElement("div");
+    modal.className = "history-modal";
+    
+    modal.innerHTML = `
+      <div class="history-header">
+        <div class="history-search-container">
+          <i class="fa-solid fa-magnifying-glass history-search-icon"></i>
+          <input type="text" class="history-search" placeholder="${I18nService.t("placeholderSearchHistory") || "Search history..."}">
+        </div>
+        <button class="diff-close" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
+      </div>
+      <div class="history-list">
+        <div class="spinner" style="margin: 20px auto;"></div>
+      </div>
+    `;
+    
+    this.shadow.appendChild(overlay);
+    this.shadow.appendChild(modal);
+    
+    // Close Logic
+    const close = () => {
+      modal.remove();
+      overlay.remove();
+      document.removeEventListener("keydown", keyHandler, true);
+    };
+    
+    modal.querySelector(".diff-close").onclick = close;
+    overlay.onclick = close;
+    
+    const keyHandler = (e) => {
+      if (e.key === "Escape") {
+         e.preventDefault(); e.stopPropagation();
+         close();
+      }
+    };
+    document.addEventListener("keydown", keyHandler, true);
+    
+    // Load Data
+    const listContainer = modal.querySelector(".history-list");
+    const searchInput = modal.querySelector(".history-search");
+    
+    const renderList = (items) => {
+      listContainer.innerHTML = "";
+      if (items.length === 0) {
+        listContainer.innerHTML = `<div class="history-empty">${I18nService.t("noHistory") || "No history records found."}</div>`;
+        return;
+      }
+      
+      items.forEach(item => {
+        const el = document.createElement("div");
+        el.className = "history-item";
+        
+        // Time diff
+        const diffDesc = this._timeAgo(item.timestamp);
+        
+        el.innerHTML = `
+          <div class="history-meta">
+            <span class="history-strategy-tag">${this.escapeHtml(item.strategy)}</span>
+            <span>${diffDesc}</span>
+          </div>
+          <div class="history-preview" title="${this.escapeHtml(item.optimizedResult)}">
+             ${this.escapeHtml(item.optimizedResult)}
+          </div>
+        `;
+        
+        el.onclick = () => {
+            // Restore this result
+            // Define action: Copy? Or Re-open Diff?
+            // Let's re-open Diff in "Review Mode" (read only? or allow apply if editable context found?)
+            // Since we can't easily link back to original element if it's gone or scrolled,
+            // let's just open the Review Modal with this content, detached from element context if needed,
+            // OR just copy to clipboard.
+            
+            // Better UX: Open Review Modal. If we have a valid last active element, try to use it.
+            // If not, just show Diff for "Copying".
+            
+            // For now: Just copy to clipboard with toast, easiest v1
+            navigator.clipboard.writeText(item.optimizedResult);
+            this.showToast(I18nService.t("tooltipCopied") || "Copied to clipboard", "success");
+            close();
+        };
+        
+        listContainer.appendChild(el);
+      });
+    };
+    
+    // Initial Load
+    try {
+        const history = await StorageService.getHistory();
+        renderList(history);
+        
+        // Search Binder
+        let debounce;
+        searchInput.oninput = (e) => {
+            clearTimeout(debounce);
+            debounce = setTimeout(async () => {
+                const query = e.target.value;
+                const filtered = await StorageService.getHistory({ query });
+                renderList(filtered);
+            }, 300);
+        };
+        
+        searchInput.focus(); // Auto focus
+        
+    } catch (e) {
+        listContainer.innerHTML = `<div class="history-empty" style="color:var(--danger)">Error loading history</div>`;
+        console.error(e);
+    }
+  }
+  
+  _timeAgo(timestamp) {
+      const seconds = Math.floor((Date.now() - timestamp) / 1000);
+      if (seconds < 60) return "Just now";
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
   }
 
   showMinimizedFab(onRestore) {

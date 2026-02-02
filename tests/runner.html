@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptSmith History Feature Tests</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        .log { margin-bottom: 5px; border-bottom: 1px solid #eee; padding: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>PromptSmith History Tests</h1>
+    <div id="results">Running tests...</div>
+
+    <!-- Mocks and Source -->
+    <script src="mocks.js"></script>
+    
+    <!-- We need to load storage.js as a module, or shim it because it uses 'export' -->
+    <script type="module">
+        import { StorageService, KEYS } from '../src/lib/storage.js';
+        import { runTests } from './history_test.js';
+
+        // Expose to window for the test runner if needed, or just run here
+        window.StorageService = StorageService;
+        window.KEYS = KEYS;
+        
+        runTests();
+    </script>
+</body>
+</html>
