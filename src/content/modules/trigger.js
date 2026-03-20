@@ -6,12 +6,25 @@ export class TriggerManager {
 
     // Bind handlers once for add/removeEventListener
     this.boundHandleKeydown = this.handleKeydown.bind(this);
-    this.boundHandleSelection = this.handleSelection.bind(this);
+    this.boundHandleSelection = this._debouncedHandleSelection.bind(this);
     this.boundHandleFocus = this.handleFocus.bind(this);
     this.boundHandleBlur = this.handleBlur.bind(this);
     this.boundWindowBlur = () => {
       this.callbacks.onSelectionClear();
     };
+
+    // Debounce timer for handleSelection to prevent rapid-fire FAB recreation
+    this._selectionDebounceTimer = null;
+  }
+
+  _debouncedHandleSelection() {
+    if (this._selectionDebounceTimer) {
+      clearTimeout(this._selectionDebounceTimer);
+    }
+    this._selectionDebounceTimer = setTimeout(() => {
+      this._selectionDebounceTimer = null;
+      this.handleSelection();
+    }, 80);
   }
 
   start() {
@@ -45,6 +58,12 @@ export class TriggerManager {
     document.removeEventListener("focusin", this.boundHandleFocus);
     document.removeEventListener("focusout", this.boundHandleBlur);
     window.removeEventListener("blur", this.boundWindowBlur);
+
+    // Clear selection debounce timer
+    if (this._selectionDebounceTimer) {
+      clearTimeout(this._selectionDebounceTimer);
+      this._selectionDebounceTimer = null;
+    }
 
     // Remove chrome.storage listener to prevent Extension context invalidated error
     if (this.boundStorageListener) {
@@ -117,8 +136,8 @@ export class TriggerManager {
 
     // Check key match
     if (e.key.toLowerCase() !== targetKey) {
-      // Just content typing check
-      setTimeout(() => this.handleSelection(), 50);
+      // Just content typing check - debounced to prevent rapid FAB recreation
+      this._debouncedHandleSelection();
       return;
     }
 
@@ -138,7 +157,7 @@ export class TriggerManager {
     }
 
     // Also trigger update on typing to show/hide FAB based on content length
-    setTimeout(() => this.handleSelection(), 50);
+    this._debouncedHandleSelection();
   }
 
   handleSelection() {

@@ -102,7 +102,7 @@ export class UIManager {
       
       /* --- FAB --- */
       .fab {
-        position: absolute;
+        position: fixed;
         width: 36px;
         height: 36px;
         background: white;
@@ -739,6 +739,7 @@ export class UIManager {
 
   showFab(element, onClick, selectionState = null, showTriggerFab = true) {
     if (this.menuVisible) return;
+    if (this.isLoading) return; // Prevent creating duplicate FAB while loader is active
     this.hideFab();
 
     if (!element) return;
@@ -835,16 +836,12 @@ export class UIManager {
       this.removalObserver.disconnect();
       this.removalObserver = null;
     }
-  }
 
-  clearFabs() {
-    // Clear trigger FAB
-    if (this.currentFab) {
-      this.currentFab.remove();
-      this.currentFab = null;
+    // Clear pending position debounce timer to prevent stale updates
+    if (this.positionDebounceTimer) {
+      clearTimeout(this.positionDebounceTimer);
+      this.positionDebounceTimer = null;
     }
-    // Clear minimized review FAB if any
-    this.hideMinimizedFab();
   }
 
   updatePositions(anchorElement) {
@@ -1016,7 +1013,12 @@ export class UIManager {
   }
 
   clearFabs() {
-    this.hideFab();
+    // Force-clear all FABs including during loading state (e.g., when element is removed from DOM)
+    this.stopObserving();
+    if (this.currentFab) {
+      this.currentFab.remove();
+      this.currentFab = null;
+    }
     this.hideMinimizedFab();
   }
 

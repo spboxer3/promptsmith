@@ -46,6 +46,14 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.5.2
+
+- **Bug Fix**: Fixed duplicate floating icon appearing when FAB was recreated during loading state.
+- **Bug Fix**: Fixed floating icon position drift caused by stale debounce timer firing after observer cleanup.
+- **Bug Fix**: Fixed floating icon misalignment by changing FAB positioning from `absolute` to `fixed`, matching viewport-relative coordinates.
+- **Performance**: Debounced selection handler to prevent rapid-fire FAB recreation on every keystroke.
+- **Code Cleanup**: Consolidated duplicate `clearFabs()` method into a single force-clean implementation.
+
 ### v0.5.1
 
 - **UI Polish**: Unified dropdown styles across Floating Menu and Options Page for a consistent premium feel.
