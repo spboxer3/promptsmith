@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromptSmith Settings</title>
     <link rel="stylesheet" href="options.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../lib/font-awesome.css">
 </head>
 
@@ -18,19 +17,23 @@
                 <span class="version" id="extensionVersion"></span>
             </div>
             <nav>
-                <button class="nav-item active" data-tab="endpoints">
+                <button type="button" class="nav-item active" data-tab="endpoints" aria-controls="endpoints"
+                    aria-selected="true">
                     <span class="icon"><i class="fa-solid fa-plug"></i></span> <span
                         data-i18n="navEndpoints">Endpoints</span>
                 </button>
-                <button class="nav-item" data-tab="strategies">
+                <button type="button" class="nav-item" data-tab="strategies" aria-controls="strategies"
+                    aria-selected="false">
                     <span class="icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span> <span
                         data-i18n="navStrategies">Strategies</span>
                 </button>
-                <button class="nav-item" data-tab="settings">
+                <button type="button" class="nav-item" data-tab="settings" aria-controls="settings"
+                    aria-selected="false">
                     <span class="icon"><i class="fa-solid fa-gear"></i></span> <span
                         data-i18n="navSettings">Settings</span>
                 </button>
-                <button class="nav-item" data-tab="history">
+                <button type="button" class="nav-item" data-tab="history" aria-controls="history"
+                    aria-selected="false">
                     <span class="icon"><i class="fa-solid fa-clock-rotate-left"></i></span> <span
                         data-i18n="navHistory">History</span>
                 </button>
@@ -42,7 +45,7 @@
             <section id="endpoints" class="tab-content active">
                 <header class="section-header">
                     <h2 data-i18n="sectionEndpoints">Connection Endpoints</h2>
-                    <button id="addEndpointBtn" class="btn-primary" data-i18n="btnAddEndpoint"><i
+                    <button type="button" id="addEndpointBtn" class="btn-primary" data-i18n="btnAddEndpoint"><i
                             class="fa-solid fa-plus"></i> Add Endpoint</button>
                 </header>
                 <div id="endpointList" class="card-list">
@@ -54,7 +57,7 @@
             <section id="strategies" class="tab-content">
                 <header class="section-header">
                     <h2 data-i18n="sectionStrategies">Optimization Strategies</h2>
-                    <button id="addStrategyBtn" class="btn-primary" data-i18n="btnAddStrategy"><i
+                    <button type="button" id="addStrategyBtn" class="btn-primary" data-i18n="btnAddStrategy"><i
                             class="fa-solid fa-plus"></i> Add Strategy</button>
                 </header>
 
@@ -65,15 +68,15 @@
                         <!-- Categories will be injected here -->
                     </div>
                     <div class="add-category-row">
-                        <input type="text" id="newCategoryInput" data-i18n-placeholder="placeholderCategory"
+                        <input type="text" id="newCategoryInput" data-i18n-attrs="placeholder=placeholderCategory"
                             placeholder="New category...">
-                        <button id="addCategoryBtn" class="btn-secondary" data-i18n="btnAddCategory">+ Add</button>
+                        <button type="button" id="addCategoryBtn" class="btn-secondary" data-i18n="btnAddCategory">+ Add</button>
                     </div>
                 </div>
 
                 <!-- Category Filter -->
                 <div class="category-filter">
-                    <label data-i18n="lblFilterByCategory">Filter by Category:</label>
+                    <label for="categoryFilter" data-i18n="lblFilterByCategory">Filter by Category:</label>
                     <select id="categoryFilter">
                         <option value="" data-i18n="optionAllCategories">All Categories</option>
                         <!-- Options will be injected here -->
@@ -92,7 +95,7 @@
                 </header>
                 <div class="settings-form">
                     <div class="form-group">
-                        <label data-i18n="lblLanguage">Language</label>
+                        <label for="languageSelect" data-i18n="lblLanguage">Language</label>
                         <select id="languageSelect">
                             <option value="auto">Auto (System Default)</option>
                             <option value="en">English</option>
@@ -101,12 +104,11 @@
                     </div>
 
                     <div class="form-group">
-                        <div class="form-group">
-                            <label data-i18n="lblTrigger">Trigger Shortcut</label>
+                            <label for="triggerKey" data-i18n="lblTrigger">Trigger Shortcut</label>
                             <input type="text" id="triggerKey" value="Alt+P" placeholder="Press key combination..."
                                 style="cursor: pointer;">
                             <small data-i18n="hintTrigger">Click field and press keys to record new shortcut.</small>
-                        </div>
+                    </div>
                         <div class="form-group"
                             style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
                             <label for="showFloatingIcon" style="margin:0; font-weight:500;"
@@ -118,7 +120,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label data-i18n="lblOutputLanguage">AI Output Language</label>
+                            <label for="outputLanguage" data-i18n="lblOutputLanguage">AI Output Language</label>
                             <input type="text" id="outputLanguage" list="languageList"
                                 placeholder="Auto (same as input)" autocomplete="off">
                             <datalist id="languageList">
@@ -196,7 +198,7 @@
                                     <div class="add-domain-row" style="margin-top: 12px;">
                                         <input type="text" id="newDomainInput" placeholder="*.example.com"
                                             data-i18n-attrs="placeholder=placeholderDomain">
-                                        <button id="addDomainBtn" class="btn-primary" data-i18n="btnAddDomain">
+                                        <button type="button" id="addDomainBtn" class="btn-primary" data-i18n="btnAddDomain">
                                             <i class="fa-solid fa-plus"></i> Add
                                         </button>
                                     </div>
@@ -210,18 +212,17 @@
                             style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
                             <h3 style="font-size: 14px; margin-bottom: 10px;" data-i18n="sectionBackup">Backup & Restore
                             </h3>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="exportBtn" class="btn-secondary"><i class="fa-solid fa-download"></i> <span
+                            <div class="backup-actions">
+                                <button type="button" id="exportBtn" class="btn-secondary"><i class="fa-solid fa-download"></i> <span
                                         data-i18n="btnExport">Export
                                         Settings</span></button>
-                                <button id="importBtn" class="btn-secondary"><i class="fa-solid fa-upload"></i> <span
+                                <button type="button" id="importBtn" class="btn-secondary"><i class="fa-solid fa-upload"></i> <span
                                         data-i18n="btnImport">Import
                                         Settings</span></button>
                                 <input type="file" id="importFile" accept=".json" style="display: none;">
                             </div>
                         </div>
-                    </div>
-            </section>
+                </div>
             </section>
 
             <!-- History Tab -->
@@ -249,13 +250,12 @@
                     </div>
 
                     <input type="text" id="historySearch" placeholder="Search history..."
-                        data-i18n-attrs="placeholder=placeholderSearchHistory">
-                    <button id="clearHistoryBtn" class="btn-secondary" data-i18n="btnClearHistory"
+                        data-i18n-attrs="placeholder=placeholderSearchHistory;aria-label=placeholderSearchHistory">
+                    <button type="button" id="clearHistoryBtn" class="btn-secondary" data-i18n="btnClearHistory"
                         style="color: var(--danger); border-color: var(--danger);">
                         <i class="fa-solid fa-trash-can"></i> Clear All
                     </button>
                 </div>
-                </header>
                 <div id="historyList" class="card-list">
                     <!-- History Rendered Here -->
                 </div>
@@ -264,14 +264,15 @@
     </div>
 
     <!-- Toast Container -->
-    <div id="toastContainer"></div>
+    <div id="toastContainer" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Modal Template -->
-    <div id="modalOverlay" class="modal-overlay hidden">
-        <div class="modal">
+    <div id="modalOverlay" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
             <header class="modal-header">
                 <h3 id="modalTitle">Edit Item</h3>
-                <button class="close-modal">×</button>
+                <button type="button" class="close-modal" aria-label="Close"
+                    data-i18n-attrs="aria-label=btnCancel">×</button>
             </header>
             <div class="modal-body">
                 <form id="modalForm">
@@ -279,8 +280,9 @@
                 </form>
             </div>
             <footer class="modal-footer">
-                <button class="btn-secondary close-modal" data-i18n="btnCancel">Cancel</button>
-                <button id="saveModalBtn" class="btn-primary" data-i18n="btnSave">Save</button>
+                <button type="button" class="btn-secondary close-modal" data-i18n="btnCancel">Cancel</button>
+                <button type="submit" form="modalForm" id="saveModalBtn" class="btn-primary"
+                    data-i18n="btnSave">Save</button>
             </footer>
         </div>
     </div>

@@ -12,10 +12,10 @@
   "navSettings": { "message": "Settings" },
 
   "sectionEndpoints": { "message": "Connection Endpoints" },
-  "btnAddEndpoint": { "message": "+ Add Endpoint" },
+  "btnAddEndpoint": { "message": "Add Endpoint" },
 
   "sectionStrategies": { "message": "Optimization Strategies" },
-  "btnAddStrategy": { "message": "+ Add Strategy" },
+  "btnAddStrategy": { "message": "Add Strategy" },
 
   "sectionSettings": { "message": "General Settings" },
   "lblLanguage": { "message": "Language" },
@@ -35,6 +35,8 @@
 
   "modalTitleEdit": { "message": "Edit $1" },
   "modalTitleAdd": { "message": "Add $1" },
+  "itemEndpoint": { "message": "Endpoint" },
+  "itemStrategy": { "message": "Strategy" },
   "btnConfirm": { "message": "Delete" },
   "btnCancel": { "message": "Cancel" },
   "btnSave": { "message": "Save" },
@@ -98,7 +100,7 @@
   "hintWhitelist": { "message": "Only activate on specified domains" },
   "lblDefaultDomains": { "message": "Default AI Tools" },
   "lblCustomDomains": { "message": "Custom Domains" },
-  "btnAddDomain": { "message": "+ Add" },
+  "btnAddDomain": { "message": "Add" },
   "placeholderDomain": { "message": "*.example.com" },
   "hintDomainFormat": { "message": "Supports wildcards (e.g., *.example.com)" },
   "noCustomDomains": { "message": "No custom domains added" },
@@ -109,7 +111,7 @@
   "lblCategories": { "message": "Categories" },
   "lblCategory": { "message": "Category" },
   "lblUncategorized": { "message": "Uncategorized" },
-  "btnAddCategory": { "message": "+ Add" },
+  "btnAddCategory": { "message": "Add" },
   "placeholderCategory": { "message": "New category..." },
   "errCategoryExists": { "message": "Category already exists" },
   "confirmDeleteCategory": {
@@ -135,5 +137,20 @@
   "lblOriginal": { "message": "ORIGINAL" },
   "lblOptimized": { "message": "OPTIMIZED" },
   "hintRetention": { "message": "History is stored locally and kept for 7 days." },
-  "placeholderFilterStrategy": { "message": "Filter by strategy..." }
+  "placeholderFilterStrategy": { "message": "Filter by strategy..." },
+  "noEndpoints": { "message": "No endpoints yet. Add one to start optimizing." },
+  "noMatchingStrategies": { "message": "No strategies match this filter." },
+  "errHistoryLoad": { "message": "Could not load history." },
+  "errCopyFailed": { "message": "Could not copy to the clipboard." },
+  "confirmClearHistory": { "message": "Clear all history records? This cannot be undone." },
+  "toastHistoryCleared": { "message": "History cleared" },
+  "toastSaveFail": { "message": "Save failed: $1" },
+  "popupMissingEndpoint": { "message": "Add an endpoint to get started" },
+  "popupMissingStrategy": { "message": "Add a strategy to get started" },
+  "popupRestrictedPage": { "message": "Unavailable on system pages" },
+  "popupPageUnavailable": { "message": "This page is unavailable" },
+  "popupLoadError": { "message": "Could not load extension status" },
+  "popupNotWhitelisted": { "message": "Not enabled on this site" },
+  "processing": { "message": "Processing" },
+  "processingHint": { "message": "AI is working on your request..." }
 }

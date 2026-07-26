@@ -2,77 +2,80 @@ import { StorageService } from "../lib/storage.js";
 import { I18nService } from "../lib/i18n.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await I18nService.init();
-  I18nService.apply();
+  try {
+    await I18nService.init();
+    I18nService.apply();
 
-  document.getElementById("openSettings").addEventListener("click", () => {
-    chrome.runtime.openOptionsPage();
-  });
+    document.getElementById("openSettings").addEventListener("click", () => {
+      chrome.runtime.openOptionsPage();
+    });
 
   // Single Source of Truth: Inject Version from Manifest
-  const manifest = chrome.runtime.getManifest();
-  const versionEl = document.getElementById("extensionVersion");
-  if (versionEl) {
-    versionEl.textContent = `v${manifest.version}`;
-  }
+    const manifest = chrome.runtime.getManifest();
+    const versionEl = document.getElementById("extensionVersion");
+    if (versionEl) {
+      versionEl.textContent = `v${manifest.version}`;
+    }
 
   // 1. Update Shortcut Hint
-  const config = await StorageService.getAppConfig();
-  const hintKey = document.querySelector(".hint strong");
-  if (hintKey) {
-    hintKey.textContent = config.triggerKey || "Alt+P";
-  }
+    const config = await StorageService.getAppConfig();
+    const hintKey = document.querySelector(".hint strong");
+    if (hintKey) {
+      hintKey.textContent = config.triggerKey || "Alt+P";
+    }
 
   // 2. Check Configuration Health
-  const endpoints = await StorageService.getEndpoints();
-  const strategies = await StorageService.getStrategies();
-  const dot = document.querySelector(".status-dot");
-  const text = document.querySelector(".status-text");
-  let isConfigValid = true;
+    const endpoints = await StorageService.getEndpoints();
+    const strategies = await StorageService.getStrategies();
+    let isConfigValid = true;
 
-  if (endpoints.length === 0) {
-    isConfigValid = false;
-    if (dot) {
-      dot.classList.remove("active");
-      dot.style.backgroundColor = "#ffbb33"; // Orange
+    if (endpoints.length === 0) {
+      isConfigValid = false;
+      setPopupStatus("warning", I18nService.t("popupMissingEndpoint"));
+    } else if (strategies.length === 0) {
+      isConfigValid = false;
+      setPopupStatus("warning", I18nService.t("popupMissingStrategy"));
     }
-    if (text) text.textContent = "Missing Endpoint";
-  } else if (strategies.length === 0) {
-    isConfigValid = false;
-    if (dot) {
-      dot.classList.remove("active");
-      dot.style.backgroundColor = "#ffbb33"; // Orange
-    }
-    if (text) text.textContent = "Missing Strategy";
-  }
 
   // 3. Check Tab Validity and Whitelist Status
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tab && tab.url) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.url) {
     // Global Config Warning takes precedence over Local Page Restriction
-    if (!isConfigValid) return;
+      if (!isConfigValid) return;
 
     // Chrome Extensions cannot run on chrome:// or edge:// pages
-    if (
-      tab.url.startsWith("chrome://") ||
-      tab.url.startsWith("edge://") ||
-      tab.url.startsWith("about:")
-    ) {
-      if (dot) {
-        dot.classList.remove("active");
-        dot.style.backgroundColor = "#ff4444";
+      if (
+        tab.url.startsWith("chrome://") ||
+        tab.url.startsWith("edge://") ||
+        tab.url.startsWith("about:") ||
+        tab.url.startsWith("chrome-extension://")
+      ) {
+        setPopupStatus("error", I18nService.t("popupRestrictedPage"));
+        return;
       }
-      if (text) text.textContent = "Restricted on system pages";
-      return; 
-    }
 
-    // Initialize Whitelist UI
-    await initWhitelistUI(tab.url);
+      await initWhitelistUI(tab.url);
+    } else if (isConfigValid) {
+      setPopupStatus("error", I18nService.t("popupPageUnavailable"));
+    }
+  } catch (error) {
+    console.error("[PromptSmith] Popup initialization failed:", error);
+    setPopupStatus("error", I18nService.t("popupLoadError"));
   }
 });
 
 import { DomainMatcher } from "../lib/domainMatcher.js";
 import { DEFAULT_WHITELIST_DOMAINS } from "../lib/storage.js";
+
+function setPopupStatus(state, message) {
+  const dot = document.querySelector(".status-dot");
+  const text = document.querySelector(".status-text");
+  if (dot) {
+    dot.classList.remove("active", "warning", "error");
+    dot.classList.add(state);
+  }
+  if (text) text.textContent = message;
+}
 
 /**
  * Initialize the whitelist UI based on current URL
@@ -83,6 +86,11 @@ async function initWhitelistUI(url) {
   if (!container) return;
 
   const config = await StorageService.getAppConfig();
+  if (config.whitelistEnabled === false) {
+    container.replaceChildren();
+    container.style.display = "none";
+    return;
+  }
   const customDomains = config.customDomains || [];
   const removedDefaults = config.removedDefaultDomains || [];
   const hostname = DomainMatcher.extractDomain(url);
@@ -116,25 +124,27 @@ async function initWhitelistUI(url) {
   const isEffectiveWhitelisted = isCustomListed || (isDefaultListed && !isDefaultRemoved);
 
   if (isEffectiveWhitelisted) {
+    setPopupStatus("active", I18nService.t("popupReady"));
     // Determine what to show as "Matched"
     const matchedPattern = isCustomListed ? hostname : defaultRule; // For custom, we only use exact hostname now due to refactor
-    renderRemoveView(container, matchedPattern);
+    renderRemoveView(container, matchedPattern, url);
   } else {
+    setPopupStatus("warning", I18nService.t("popupNotWhitelisted"));
     // If it was a removed default, we treat it as just "not whitelisted", so we offer to Add (restore).
     // Restoring a removed default = removing from removedDefaultDomains ? 
     // OR just adding to customDomains?
     // Adding to customDomains is safer/simpler (overrides removal). 
     // But keeping config clean is better. 
-    renderAddView(container, hostname, isDefaultRemoved ? defaultRule : null);
+    renderAddView(container, hostname, isDefaultRemoved ? defaultRule : null, url);
   }
   
   container.style.display = "block";
 }
 
-function renderAddView(container, hostname, removedDefaultPattern) {
+function renderAddView(container, hostname, removedDefaultPattern, currentUrl) {
   container.innerHTML = `
     <span class="whitelist-header" data-i18n="headerWhitelistAdd">Add to Whitelist</span>
-    <button class="whitelist-action-btn add">
+    <button type="button" class="whitelist-action-btn add">
         <i class="fa-solid fa-plus"></i> 
         <span>${hostname}</span>
     </button>
@@ -142,16 +152,23 @@ function renderAddView(container, hostname, removedDefaultPattern) {
   I18nService.apply(container);
 
   container.querySelector(".whitelist-action-btn").addEventListener("click", async () => {
-    await addToWhitelist(hostname, removedDefaultPattern);
-    // Refresh UI
-    initWhitelistUI(hostname); 
+    const button = container.querySelector(".whitelist-action-btn");
+    button.disabled = true;
+    try {
+      await addToWhitelist(hostname, removedDefaultPattern);
+      await initWhitelistUI(currentUrl);
+    } catch (error) {
+      console.error("[PromptSmith] Could not update whitelist:", error);
+      button.disabled = false;
+      setPopupStatus("error", I18nService.t("popupLoadError"));
+    }
   });
 }
 
-function renderRemoveView(container, pattern) {
+function renderRemoveView(container, pattern, currentUrl) {
   container.innerHTML = `
     <span class="whitelist-header" data-i18n="headerWhitelistRemove">Site is Whitelisted</span>
-    <button class="whitelist-action-btn remove">
+    <button type="button" class="whitelist-action-btn remove">
         <i class="fa-solid fa-trash"></i>
         <span data-i18n="btnRemoveFromWhitelist">Remove from Whitelist</span>
     </button>
@@ -166,9 +183,16 @@ function renderRemoveView(container, pattern) {
   // So a simple Remove button is fine.
 
   container.querySelector(".whitelist-action-btn").addEventListener("click", async () => {
-    await removeFromWhitelist(pattern);
-    // Refresh UI
-    initWhitelistUI(pattern); // pattern might be wildcard, but init handles URL/Hostname
+    const button = container.querySelector(".whitelist-action-btn");
+    button.disabled = true;
+    try {
+      await removeFromWhitelist(pattern);
+      await initWhitelistUI(currentUrl);
+    } catch (error) {
+      console.error("[PromptSmith] Could not update whitelist:", error);
+      button.disabled = false;
+      setPopupStatus("error", I18nService.t("popupLoadError"));
+    }
   });
 }
 

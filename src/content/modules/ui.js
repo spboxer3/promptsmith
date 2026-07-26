@@ -23,20 +23,17 @@ export class UIManager {
 
     this.menuVisible = false;
     this.isLoading = false;
+    this.currentFabHost = null;
+    this.currentFabMount = null;
+    this.currentMinFabHost = null;
+    this.currentMinFabMount = null;
+    this.fabMountStates = new Map();
 
     // Review Minimized State
     this.isReviewMinimized = false;
     this.restoreCallback = null;
     this.diffContext = null;
-    this.positionDebounceTimer = null;
-
-    // Resize Observer for Dynamic Positioning
     this.observedElement = null;
-    this.resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        this.updatePositions(entry.target);
-      }
-    });
   }
 
   addStyles() {
@@ -482,6 +479,12 @@ export class UIManager {
         transition: all 0.2s;
       }
 
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, 0.2);
+        outline-offset: 2px;
+      }
+
       .btn-secondary {
         background: white;
         border: 1px solid var(--border);
@@ -568,6 +571,9 @@ export class UIManager {
       .toast.danger {
         background: var(--danger);
       }
+      .toast.success {
+        background: var(--success);
+      }
       
       
       /* --- Minimized FAB --- */
@@ -636,6 +642,7 @@ export class UIManager {
         flex-direction: column;
         z-index: 2147483647;
         animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
       }
 
       .history-header {
@@ -733,6 +740,87 @@ export class UIManager {
         color: var(--text-muted);
         font-size: 13px;
       }
+
+      @media (max-width: 600px) {
+        .diff-modal,
+        .history-modal {
+          width: calc(100vw - 16px);
+          max-width: none;
+          max-height: calc(100vh - 16px);
+          border-radius: 10px;
+        }
+
+        .diff-body {
+          display: block;
+          min-height: 0;
+          overflow-y: auto;
+        }
+
+        .diff-pane {
+          min-height: 150px;
+          overflow: visible;
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .diff-pane:last-child {
+          border-bottom: 0;
+        }
+
+        .diff-footer {
+          flex-wrap: wrap;
+          padding: 12px;
+        }
+
+        .diff-footer .footer-left {
+          flex-basis: 100%;
+        }
+
+        .diff-footer .footer-right {
+          width: 100%;
+          flex-wrap: wrap;
+        }
+
+        .diff-footer .footer-right button {
+          flex: 1;
+        }
+
+        .history-header {
+          align-items: flex-start;
+        }
+
+        .history-search-container {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .history-search-container .custom-dropdown {
+          width: 100%;
+        }
+
+        .history-search-wrapper {
+          width: 100%;
+        }
+
+        .history-list {
+          min-height: 160px;
+        }
+
+        .toast {
+          width: calc(100vw - 32px);
+          max-width: 420px;
+          box-sizing: border-box;
+          text-align: center;
+          overflow-wrap: anywhere;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
     `;
     this.shadow.appendChild(style);
   }
@@ -744,15 +832,20 @@ export class UIManager {
 
     if (!element) return;
 
-    // Find the stable anchor (Scroll Container)
+    // Resolve the visible editor surface used for positioning.
     const anchor = this._getStableAnchor(element);
-    if (!anchor || !anchor.getBoundingClientRect) return;
-
+    if (!anchor) return;
     if (showTriggerFab) {
-      const fab = document.createElement("div");
+      const portal = this._createCssFabPortal(anchor, "4px");
+      if (!portal) return;
+      const { host, shadow: fabShadow, mount } = portal;
+
+      const fab = document.createElement("button");
+      fab.type = "button";
       fab.className = "fab";
+      fab.setAttribute("aria-label", "PromptSmith");
       const iconUrl = safeGetURL("assets/icons/icon48.png");
-      fab.innerHTML = `<img src="${iconUrl}" style="width: 20px; height: 20px; object-fit: contain;">`;
+      fab.innerHTML = `<img src="${iconUrl}" alt="">`;
       fab.onmousedown = (e) => {
         e.stopPropagation();
         e.preventDefault(); // Prevent focus loss from input
@@ -760,14 +853,12 @@ export class UIManager {
         onClick(selectionState);
       };
 
-      this._calculateFabPosition(fab, anchor);
-
-      this.shadow.appendChild(fab);
+      fabShadow.appendChild(fab);
       this.currentFab = fab;
+      this.currentFabHost = host;
+      this.currentFabMount = mount;
     }
-
-    // Start Observing the ANCHOR for resize/scroll, not the inner content
-    // We observe even if Trigger FAB is hidden, so Review FAB can position correctly
+    // CSS follows layout changes automatically; observe removal for cleanup.
     this.startObserving(anchor);
 
     // Sync Review FAB if active
@@ -786,16 +877,6 @@ export class UIManager {
     this.stopObserving(); // Clean up previous if any
 
     this.observedElement = anchorElement;
-    this.resizeObserver.observe(anchorElement);
-
-    // Add Scroll Listener (Capture to detect any scroll on page)
-    this.boundScrollHandler = () => {
-      this.updatePositions(anchorElement);
-    };
-    window.addEventListener("scroll", this.boundScrollHandler, {
-      capture: true,
-      passive: true,
-    });
 
     // Add MutationObserver to detect when element is removed from DOM
     this.removalObserver = new MutationObserver((mutations) => {
@@ -821,15 +902,7 @@ export class UIManager {
 
   stopObserving() {
     if (this.observedElement) {
-      this.resizeObserver.unobserve(this.observedElement);
       this.observedElement = null;
-    }
-
-    if (this.boundScrollHandler) {
-      window.removeEventListener("scroll", this.boundScrollHandler, {
-        capture: true,
-      });
-      this.boundScrollHandler = null;
     }
 
     if (this.removalObserver) {
@@ -844,79 +917,20 @@ export class UIManager {
     }
   }
 
-  updatePositions(anchorElement) {
-    // 1. Immediate Update (Fast response)
-    this._performUpdate(anchorElement);
-
-    // 2. Debounced Update (Stability check)
-    // Fixes issue where site scripts resize input AFTER our event,
-    // or layout is still reflowing.
-    if (this.positionDebounceTimer) {
-      clearTimeout(this.positionDebounceTimer);
-    }
-    this.positionDebounceTimer = setTimeout(() => {
-      this._performUpdate(anchorElement);
-    }, 300);
-  }
-
-  _performUpdate(anchorElement) {
-    // Re-calculate Strategy FAB
-    if (this.currentFab) {
-      this._calculateFabPosition(this.currentFab, anchorElement);
-    }
-    // Re-calculate Review FAB
-    // Note: Review FAB logic might need the original element to check diffContext match
-    // But the positioning should be based on the anchor.
-    // The previous code passed 'element' (which became 'anchorElement' here).
-    // So distinct logic for Review FAB check vs positioning?
-
-    // Let's rely on _calculateFabPosition doing the right thing if passed the anchor.
-    // Wait, _calculateFabPosition calls _getStableAnchor internally in previous code?
-    // We should simplify: Pass the ALREADY RESOLVED anchor to _calculateFabPosition.
-
-    if (
-      this.currentMinFab &&
-      this.isReviewMinimized &&
-      this.diffContext
-      // We can't easily check diffContext.element === anchorElement if anchor is different.
-      // But we are only observing the relevant anchor.
-    ) {
-      // Just re-render based on this anchor
-      const fab = this.currentMinFab;
-      // Optimization: Don't re-render entire DOM, just calc pos
-      this._calculateFabPosition(fab, anchorElement);
-
-      // Manual Offset logic duplicated here?
-      // Ideally _calculateFabPosition handles base, renderReviewFab handles offset.
-      const currentLeft = parseFloat(fab.style.left);
-      // Reset to calculating from anchor, then apply offset.
-      // Actually renderReviewFab calls _calculateFabPosition then applies offset.
-      // Let's call renderReviewFab(diffContext.element) -> which resolves anchor?
-
-      // Simpler: Just recalculate pos directly here for efficiency
-      if (fab) {
-        const rect = anchorElement.getBoundingClientRect(); // Anchor rect
-        // ... duplicate logic or extract helper?
-        // Let's just call renderReviewFab with the original element,
-        // and ensure renderReviewFab resolves the anchor correctly.
-
-        if (this.diffContext.element) {
-          this.renderReviewFab(this.diffContext.element);
-        }
-      }
-    }
-  }
-
   renderReviewFab(element) {
     let fab = this.currentMinFab;
-    const anchor = this._getStableAnchor(element); // Resolve anchor
+    const anchor = this._getStableAnchor(element);
     if (!anchor) return;
 
-    // Create if doesn't exist
     if (!fab) {
-      fab = document.createElement("div");
-      fab.className = "minimized-fab";
-      fab.innerHTML = `<i class="fa-regular fa-pen-to-square"></i>`;
+      const portal = this._createCssFabPortal(anchor, "48px");
+      if (!portal) return;
+
+      fab = document.createElement("button");
+      fab.type = "button";
+      fab.className = "fab minimized";
+      fab.setAttribute("aria-label", "PromptSmith pending review");
+      fab.textContent = "✎";
       fab.onclick = (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -926,90 +940,258 @@ export class UIManager {
         e.preventDefault();
         e.stopPropagation();
       };
-      this.shadow.appendChild(fab);
+
+      portal.shadow.appendChild(fab);
       this.currentMinFab = fab;
+      this.currentMinFabHost = portal.host;
+      this.currentMinFabMount = portal.mount;
     }
-
-    this._calculateFabPosition(fab, anchor); // Use Anchor!
-
-    // Manual Offset
-    const currentLeft = parseFloat(fab.style.left);
-    if (!isNaN(currentLeft)) {
-      fab.style.left = currentLeft - 50 + "px";
-    }
-  }
-
-  _calculateFabPosition(fabElement, targetElement) {
-    // targetElement is now expected to be the ANCHOR (Scroll Container)
-    if (!targetElement || !targetElement.getBoundingClientRect) return;
-    const rect = targetElement.getBoundingClientRect();
-
-    // Standard positioning: Top-Right
-    const top = rect.top - 40;
-    let left = rect.right - 30;
-
-    // Boundary check
-    if (top < 0) {
-      // If scrolled out of view or too close to top, show inside
-      fabElement.style.top = rect.top + 5 + "px";
-      fabElement.style.zIndex = "2147483647";
-    } else {
-      fabElement.style.top = top + "px";
-    }
-
-    fabElement.style.left = left + "px";
   }
 
   _getStableAnchor(element) {
     if (!element) return null;
 
-    // 1. Look for closest Scroll Container (overflow-y: auto/scroll)
-    let current = element;
-    // Traverse up, but stop at body to avoid locking to whole page
-    while (
-      current &&
-      current !== document.body &&
-      current !== document.documentElement
-    ) {
-      const style = window.getComputedStyle(current);
-      const overflowY = style.overflowY;
-      if (overflowY === "auto" || overflowY === "scroll") {
-        // Double check it creates a stacking context or is block? Usually fine.
-        return current;
-      }
-      current = current.parentElement;
+    // ChatGPT, Claude and Gemini expose their editor as a contenteditable
+    // surface. Native inputs and textareas are already their own anchor.
+    return element.closest?.('[contenteditable="true"]') || element;
+  }
+
+  _getCssFabMount(editor) {
+    let mount = editor?.parentElement;
+
+    // Fallback for editors that do not expose a flex/grid composer row.
+    while (mount && mount !== document.body) {
+      const style = window.getComputedStyle(mount);
+      if (style.display !== "contents") return mount;
+      mount = mount.parentElement;
     }
 
-    // 2. Fallback: closest contenteditable host
-    const host = element.closest('[contenteditable="true"]');
-    if (host) return host;
-
-    // 3. Fallback: original element
-    return element;
+    return editor?.parentElement || null;
   }
 
-  showLoader(element) {
-    this.hideFab();
-    if (!element || !element.getBoundingClientRect) return;
+  _getCssFabInsertionPoint(editor) {
+    let branch = editor;
+    const nativeControlSelector =
+      'button, [role="button"], select, [aria-haspopup], [data-testid*="send"], [data-testid*="submit"]';
+    const modelControlSelector =
+      '[data-testid*="model-selector"], button[aria-label^="Model:"], button[aria-label*="model" i]';
 
-    this.isLoading = true; // Lock visibility
+    while (
+      branch?.parentElement &&
+      branch.parentElement !== document.body &&
+      branch.parentElement !== document.documentElement
+    ) {
+      const container = branch.parentElement;
+      const containerStyle = window.getComputedStyle(container);
+      const children = Array.from(container.children).filter(
+        (child) => !child.matches?.('[data-promptsmith-fab-host="true"]')
+      );
+      const branchIndex = children.indexOf(branch);
 
-    const fab = document.createElement("div");
-    fab.className = "fab";
-    fab.innerHTML = '<div class="spinner"></div>';
-    fab.style.cursor = "wait";
-    fab.style.pointerEvents = "none"; // Block clicks while loading
+      // ChatGPT and Gemini use named CSS grid areas for their composer.
+      // Mount inside the native trailing controls area instead of becoming a
+      // new auto-placed grid item.
+      if (
+        containerStyle.display === "grid" ||
+        containerStyle.display === "inline-grid"
+      ) {
+        const trailingControls = children.find((child) => {
+          const area = window.getComputedStyle(child).gridArea;
+          return (
+            /(^|-)trailing($|-)/.test(area) &&
+            (child.matches?.(nativeControlSelector) ||
+              child.querySelector?.(nativeControlSelector))
+          );
+        });
 
-    // Reuse positioning logic
-    this._calculateFabPosition(fab, element);
+        if (trailingControls) {
+          return {
+            container: trailingControls,
+            before: trailingControls.firstElementChild,
+          };
+        }
+      }
 
-    this.shadow.appendChild(fab);
-    this.currentFab = fab;
+      // Claude keeps the editor and its native action bar in a flex column.
+      // Put PromptSmith in that action bar immediately before the model
+      // selector, leaving the site's spacer to handle all horizontal layout.
+      if (
+        (containerStyle.display === "flex" ||
+          containerStyle.display === "inline-flex") &&
+        containerStyle.flexDirection === "column"
+      ) {
+        const actionBar = children.slice(branchIndex + 1).find((child) => {
+          const style = window.getComputedStyle(child);
+          return (
+            (style.display === "flex" || style.display === "inline-flex") &&
+            style.flexDirection === "row" &&
+            child.querySelector?.(nativeControlSelector)
+          );
+        });
+        const modelControl = actionBar?.querySelector?.(modelControlSelector);
+
+        if (actionBar && modelControl) {
+          let modelBranch = modelControl;
+          while (
+            modelBranch.parentElement &&
+            modelBranch.parentElement !== actionBar
+          ) {
+            modelBranch = modelBranch.parentElement;
+          }
+
+          return { container: actionBar, before: modelBranch };
+        }
+      }
+
+      branch = container;
+    }
+
+    return null;
   }
 
-  stopLoader() {
-    this.isLoading = false;
-    this.hideFab();
+  _createCssFabPortal(editor, rightOffset) {
+    const insertionPoint = this._getCssFabInsertionPoint(editor);
+    const mount = insertionPoint ? null : this._getCssFabMount(editor);
+    if (!insertionPoint && !mount) return null;
+
+    if (mount) this._retainFabMount(mount);
+
+    const host = document.createElement("span");
+    host.dataset.promptsmithFabHost = "true";
+    host.dataset.promptsmithLayout = insertionPoint ? "inline" : "overlay";
+    host.style.setProperty("--promptsmith-fab-right", rightOffset);
+
+    const shadow = host.attachShadow({ mode: "closed" });
+    const style = document.createElement("style");
+    style.textContent = `
+      :host {
+        all: initial;
+        position: absolute;
+        inset: 0;
+        display: block;
+        pointer-events: none;
+        z-index: 2147483647;
+      }
+
+      :host([data-promptsmith-layout="inline"]) {
+        position: relative;
+        inset: auto;
+        display: inline-flex;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 100%;
+        min-height: 32px;
+        max-height: 40px;
+        align-self: center;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .fab {
+        position: absolute;
+        top: 50%;
+        right: var(--promptsmith-fab-right, 4px);
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid #e2e8f0;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        color: #2563eb;
+        cursor: pointer;
+        pointer-events: auto;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.2s, background-color 0.2s;
+      }
+
+      :host([data-promptsmith-layout="inline"]) .fab {
+        position: static;
+        inset: auto;
+        transform: none;
+        flex: none;
+        width: 32px;
+        height: 32px;
+      }
+
+      .fab.minimized {
+        font: 600 19px/1 system-ui, sans-serif;
+      }
+
+      .fab:hover {
+        transform: translateY(-50%) scale(1.08);
+        background: #f8fafc;
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      :host([data-promptsmith-layout="inline"]) .fab:hover {
+        transform: scale(1.08);
+      }
+
+      .fab:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, 0.25);
+        outline-offset: 2px;
+      }
+
+      .fab img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .fab {
+          transition: none;
+        }
+      }
+    `;
+
+    shadow.appendChild(style);
+    if (insertionPoint) {
+      insertionPoint.container.insertBefore(
+        host,
+        insertionPoint.before
+      );
+    } else {
+      mount.appendChild(host);
+    }
+    return { host, shadow, mount };
+  }
+
+  _retainFabMount(mount) {
+    const existing = this.fabMountStates.get(mount);
+    if (existing) {
+      existing.references += 1;
+      return;
+    }
+
+    const state = {
+      originalPosition: mount.style.position,
+      references: 1,
+    };
+    this.fabMountStates.set(mount, state);
+
+    if (window.getComputedStyle(mount).position === "static") {
+      mount.style.position = "relative";
+    }
+  }
+
+  _releaseFabMount(mount) {
+    if (!mount) return;
+    const state = this.fabMountStates.get(mount);
+    if (!state) return;
+
+    state.references -= 1;
+    if (state.references > 0) return;
+
+    mount.style.position = state.originalPosition;
+    this.fabMountStates.delete(mount);
   }
 
   clearFabs() {
@@ -1027,10 +1209,17 @@ export class UIManager {
 
     this.stopObserving(); // Stop Resize Observer
 
-    if (this.currentFab) {
+    if (this.currentFabHost) {
+      this.currentFabHost.remove();
+      this.currentFabHost = null;
+      this.currentFab = null;
+    } else if (this.currentFab) {
       this.currentFab.remove();
       this.currentFab = null;
     }
+
+    this._releaseFabMount(this.currentFabMount);
+    this.currentFabMount = null;
   }
 
   async showMenu(context, onSelect) {
@@ -1474,7 +1663,7 @@ export class UIManager {
     }
   }
 
-  showReviewLoading(original, context) {
+  showReviewLoading(original, context, onCancel) {
     // If we are already showing diff/loading, hide it to refresh (or we could reuse)
     this.hideDiff();
     this.diffVisible = true;
@@ -1485,6 +1674,9 @@ export class UIManager {
 
     const modal = document.createElement("div");
     modal.className = "diff-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", I18nService.t("diffTitle"));
 
     // Styles for Loading
     const style = document.createElement("style");
@@ -1516,8 +1708,6 @@ export class UIManager {
             60% { content: '..'; }
             80%, 100% { content: '...'; }
         }
-        /* Hide X button in header during loading */
-        .diff-close.hidden { display: none; }
     `;
     modal.appendChild(style);
 
@@ -1525,9 +1715,11 @@ export class UIManager {
     const themeClass = isDark ? "theme-dark" : "theme-light";
 
     modal.innerHTML += `
-      <div class="diff-header" style="justify-content: center; position: relative;">
-        <span>PromptSmith Review</span>
-        <!-- X button hidden -->
+      <div class="diff-header" style="position: relative;">
+        <span>${I18nService.t("diffTitle")}</span>
+        <button type="button" class="diff-close" aria-label="${I18nService.t(
+          "btnCancel"
+        )}" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
       </div>
       
       <div class="diff-body">
@@ -1541,14 +1733,21 @@ export class UIManager {
         <div class="diff-pane" style="position: relative;">
            <div class="loading-container">
                <div class="spinner"></div> <!-- reusing existing spinner class -->
-               <div class="loading-text">Processing<span class="dots"></span></div>
+               <div class="loading-text">${I18nService.t(
+                 "processing"
+               )}<span class="dots"></span></div>
            </div>
         </div>
       </div>
       
       <!-- Empty Footer or specialized footer -->
       <div class="diff-footer" style="justify-content: center;">
-         <span style="font-size: 12px; color: var(--text-muted);">AI is working on your request...</span>
+         <span style="font-size: 12px; color: var(--text-muted);">${I18nService.t(
+           "processingHint"
+         )}</span>
+         <button type="button" id="loadingCancel" class="btn-secondary">${I18nService.t(
+           "btnCancel"
+         )}</button>
       </div>
     `;
 
@@ -1563,10 +1762,23 @@ export class UIManager {
     this.currentDiffModal = modal;
     this.currentDiffOverlay = overlay;
 
+    const cancelLoading = () => {
+      if (!this.isLoading) return;
+      this.hideDiff();
+      if (onCancel) onCancel();
+    };
+    modal.querySelector(".diff-close").onclick = cancelLoading;
+    modal.querySelector("#loadingCancel").onclick = cancelLoading;
+
     // --- Keyboard Event Handler for Loading State ---
     const loadingKeyListener = (e) => {
       if (!this.diffVisible) return;
-      if (e.key === "Enter" || e.key === "Escape") {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        cancelLoading();
+      } else if (e.key === "Enter") {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -1588,6 +1800,9 @@ export class UIManager {
 
     const modal = document.createElement("div");
     modal.className = "diff-modal"; // Uses existing CSS class
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", I18nService.t("diffTitle"));
 
     // Add extra styles for utilities not in main CSS
     const style = document.createElement("style");
@@ -1634,8 +1849,10 @@ export class UIManager {
 
     modal.innerHTML += `
       <div class="diff-header">
-        <span>PromptSmith Review</span> <!-- Or specific title key if exists -->
-        <button class="diff-close" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
+        <span>${I18nService.t("diffTitle")}</span>
+        <button type="button" class="diff-close" aria-label="${I18nService.t(
+          "btnCancel"
+        )}" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
       </div>
       
       <div class="diff-body">
@@ -1700,6 +1917,11 @@ export class UIManager {
           copyBtn.innerHTML = originalHTML; // Restore icon
           copyBtn.style.color = "";
         }, 1500);
+      }).catch(() => {
+        this.showToast(
+          I18nService.t("errCopyFailed") || "Could not copy to the clipboard.",
+          "danger"
+        );
       });
     };
 
@@ -1789,6 +2011,7 @@ export class UIManager {
       this.currentDiffOverlay = null;
     }
     this.diffVisible = false;
+    this.isLoading = false;
   }
 
   /**
@@ -1832,6 +2055,9 @@ export class UIManager {
     
     const modal = document.createElement("div");
     modal.className = "history-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", I18nService.t("sectionHistory"));
     
     modal.innerHTML = `
         <div class="history-header">
@@ -1853,7 +2079,9 @@ export class UIManager {
                <input type="text" class="history-search" placeholder="${I18nService.t("placeholderSearchHistory") || "Search history..."}">
             </div>
           </div>
-          <button class="diff-close" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
+          <button type="button" class="diff-close" aria-label="${I18nService.t(
+            "btnCancel"
+          )}" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">×</button>
         </div>
         <div class="history-list">
           <div class="spinner" style="margin: 20px auto;"></div>
@@ -1934,7 +2162,7 @@ export class UIManager {
           </div>
         `;
         
-        el.onclick = () => {
+        el.onclick = async () => {
             // Restore this result
             // Define action: Copy? Or Re-open Diff?
             // Let's re-open Diff in "Review Mode" (read only? or allow apply if editable context found?)
@@ -1942,9 +2170,16 @@ export class UIManager {
             // Assuming read-only for now based on "disfigured" complaint about inputs.
             
             // For now: Just copy to clipboard with toast, easiest v1
-            navigator.clipboard.writeText(item.optimizedResult);
-            this.showToast(I18nService.t("tooltipCopied") || "Copied to clipboard", "success");
-            close();
+            try {
+              await navigator.clipboard.writeText(item.optimizedResult);
+              this.showToast(I18nService.t("tooltipCopied") || "Copied to clipboard", "success");
+              close();
+            } catch {
+              this.showToast(
+                I18nService.t("errCopyFailed") || "Could not copy to the clipboard.",
+                "danger"
+              );
+            }
         };
         
         listContainer.appendChild(el);
@@ -2021,6 +2256,7 @@ export class UIManager {
   }
   
   _timeAgo(timestamp) {
+      if (!Number.isFinite(Number(timestamp))) return "";
       const seconds = Math.floor((Date.now() - timestamp) / 1000);
       if (seconds < 60) return "Just now";
       const minutes = Math.floor(seconds / 60);
@@ -2050,12 +2286,15 @@ export class UIManager {
   }
 
   hideMinimizedFab() {
-    if (this.currentMinFab) {
-      if (this.shadow.contains(this.currentMinFab)) {
-        this.currentMinFab.remove();
-      }
-      this.currentMinFab = null;
+    if (this.currentMinFabHost) {
+      this.currentMinFabHost.remove();
+      this.currentMinFabHost = null;
+    } else {
+      this.currentMinFab?.remove();
     }
+    this.currentMinFab = null;
+    this._releaseFabMount(this.currentMinFabMount);
+    this.currentMinFabMount = null;
 
     // Cleanup listeners
     if (this.diffContext && this.diffContext.element) {
@@ -2119,10 +2358,13 @@ export class UIManager {
 
   escapeHtml(text) {
     const p = document.createElement("p");
-    p.textContent = text;
+    p.textContent = String(text ?? "");
     return p.innerHTML;
   }
   cleanup() {
+    this.isLoading = false;
+    this.hideFab();
+    this.hideMinimizedFab();
     this.stopObserving();
     if (this.container) {
       this.container.remove();

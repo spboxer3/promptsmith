@@ -32,12 +32,23 @@ const elements = {
 
 // Helper to escape HTML for safe display
 function escapeHtml(unsafe) {
-  return unsafe
+  return String(unsafe ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function renderEmptyState(container, icon, message, tone = "muted") {
+  if (!container) return;
+  const toneStyle = tone === "danger" ? ' style="color:var(--danger)"' : "";
+  container.innerHTML = `
+    <div class="empty-state"${toneStyle}>
+      <i class="fa-solid ${icon}" aria-hidden="true"></i>
+      <p>${escapeHtml(message)}</p>
+    </div>
+  `;
 }
 
 function initHistoryTab() {
@@ -71,6 +82,7 @@ function initHistoryTab() {
           // "All Strategies" Option
           const allOption = document.createElement("div");
           allOption.className = "custom-dropdown-option";
+          allOption.dataset.value = "";
           if (strategy === "") allOption.classList.add("selected");
           allOption.innerHTML = `<span class="option-text" data-i18n="placeholderFilterStrategy">Filter by strategy...</span>`;
           allOption.onclick = () => {
@@ -81,6 +93,7 @@ function initHistoryTab() {
           sorted.forEach(s => {
              const opt = document.createElement("div");
              opt.className = "custom-dropdown-option";
+             opt.dataset.value = s;
              if (s === strategy) opt.classList.add("selected");
              opt.innerHTML = `<span class="option-text">${escapeHtml(s)}</span>`;
              opt.onclick = () => {
@@ -91,12 +104,11 @@ function initHistoryTab() {
       }
 
       if (items.length === 0) {
-        listContainer.innerHTML = `
-          <div style="text-align:center; padding: 40px; color: var(--text-muted);">
-            <i class="fa-solid fa-clock-rotate-left" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5;"></i>
-            <p>${I18nService.t("noHistory") || "No history records found."}</p>
-          </div>
-        `;
+        renderEmptyState(
+          listContainer,
+          "fa-clock-rotate-left",
+          I18nService.t("noHistory") || "No history records found."
+        );
         return;
       }
 
@@ -151,6 +163,8 @@ function initHistoryTab() {
             copyBtn.onclick = () => {
                  navigator.clipboard.writeText(item.optimizedResult).then(() => {
                      showToast(I18nService.t("tooltipCopied") || "Copied to clipboard", "success");
+                 }).catch(() => {
+                     showToast(I18nService.t("errCopyFailed") || "Could not copy to clipboard", "danger");
                  });
             };
         }
@@ -160,7 +174,13 @@ function initHistoryTab() {
 
     } catch (e) {
       console.error("Error loading history:", e);
-      showToast("Error loading history", "danger");
+      renderEmptyState(
+        listContainer,
+        "fa-triangle-exclamation",
+        I18nService.t("errHistoryLoad") || "Could not load history.",
+        "danger"
+      );
+      showToast(I18nService.t("errHistoryLoad") || "Could not load history", "danger");
     }
   };
 
@@ -173,7 +193,7 @@ function initHistoryTab() {
       // Update Selection UI
       const options = dropdownMenu.querySelectorAll(".custom-dropdown-option");
       options.forEach(opt => {
-         if (opt.textContent === label) {
+         if (opt.dataset.value === value) {
              opt.classList.add("selected");
          } else {
              opt.classList.remove("selected");
@@ -212,24 +232,19 @@ function initHistoryTab() {
 
   // Clear All
   clearBtn.onclick = async () => {
-    if (confirm("Are you sure you want to delete ALL history records? This cannot be undone.")) {
+    if (confirm(I18nService.t("confirmClearHistory") || "Clear all history records? This cannot be undone.")) {
         await StorageService.clearHistory();
         currentStrategyFilter = ""; // Reset filter
         dropdownText.innerText = I18nService.t("placeholderFilterStrategy") || "Filter by strategy...";
         dropdownMenu.innerHTML = ""; // Clear dropdown cache
         renderHistory();
-        showToast("History cleared", "success");
+        showToast(I18nService.t("toastHistoryCleared") || "History cleared", "success");
     }
   };
 }
 
 // Global Toast (reusing existing if available, or simple impl)
 function showToast(message, type = "info") {
-    // Assuming UI.js logic isn't available here, reuse simple toast logic specific to Options page
-    // Check if ui.js or independent options.js toast exists.
-    // Looking at options.html/css, no specific toast structure seen, but let's check options.js context.
-    // ...
-    // Let's verify if options.js has a showToast function.
     const toastContainer = document.getElementById("toastContainer");
     if (!toastContainer) {
         console.warn("Toast container not found. Cannot display toast:", message);
@@ -237,22 +252,24 @@ function showToast(message, type = "info") {
     }
 
     const toast = document.createElement("div");
-    toast.className = `toast toast-${type}`;
+    toast.className = `toast ${type}`;
     toast.textContent = message;
     toastContainer.appendChild(toast);
 
     setTimeout(() => {
-        toast.classList.add("show");
-    }, 10); // Small delay to trigger CSS transition
+        toast.classList.add("visible");
+    }, 10);
 
     setTimeout(() => {
-        toast.classList.remove("show");
-        toast.addEventListener("transitionend", () => toast.remove());
+        toast.classList.remove("visible");
+        toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+        setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
-
 let currentModalMode = null; // 'endpoint' or 'strategy'
 let currentEditId = null;
+let modalPreviouslyFocused = null;
+let modalAbortController = null;
 
 // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
@@ -283,9 +300,11 @@ function setupNavigation() {
       // Remove active class
       elements.navItems.forEach((nav) => nav.classList.remove("active"));
       elements.tabContents.forEach((tab) => tab.classList.remove("active"));
+      elements.navItems.forEach((nav) => nav.setAttribute("aria-selected", "false"));
 
       // Add active class
       item.classList.add("active");
+      item.setAttribute("aria-selected", "true");
       const tabId = item.dataset.tab;
       document.getElementById(tabId).classList.add("active");
     });
@@ -303,12 +322,23 @@ function setupModal() {
   elements.closeModalBtns.forEach((btn) =>
     btn.addEventListener("click", closeModal)
   );
-  elements.saveModalBtn.addEventListener("click", handleSave);
+  elements.modalForm.addEventListener("submit", handleSave);
 
   // Delegate test button logic
   elements.modalForm.addEventListener("click", async (e) => {
-    if (e.target.id === "testEndpointBtn") {
+    if (e.target.closest("#testEndpointBtn")) {
       await handleTestConnection();
+    }
+  });
+
+  elements.modalOverlay.addEventListener("click", (e) => {
+    if (e.target === elements.modalOverlay) closeModal();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !elements.modalOverlay.classList.contains("hidden")) {
+      e.preventDefault();
+      closeModal();
     }
   });
 
@@ -434,8 +464,9 @@ function renderDomainLists(customDomains, removedDefaultDomains = []) {
       ? activeDefaults
           .map(
             (d) => `<span class="domain-chip default">
-              ${d}
-              <button class="remove-btn remove-default-btn" data-domain="${d}">
+              ${escapeHtml(d)}
+              <button type="button" class="remove-btn remove-default-btn" data-domain="${escapeHtml(d)}"
+                aria-label="${escapeHtml(I18nService.t("btnDelete"))}">
                 <i class="fa-solid fa-xmark"></i>
               </button>
             </span>`
@@ -453,8 +484,9 @@ function renderDomainLists(customDomains, removedDefaultDomains = []) {
       ? customDomains
           .map(
             (d) => `<span class="domain-chip">
-              ${d}
-              <button class="remove-btn" data-domain="${d}">
+              ${escapeHtml(d)}
+              <button type="button" class="remove-btn" data-domain="${escapeHtml(d)}"
+                aria-label="${escapeHtml(I18nService.t("btnDelete"))}">
                 <i class="fa-solid fa-xmark"></i>
               </button>
             </span>`
@@ -568,10 +600,11 @@ async function loadCategories() {
         (
           c,
           index
-        ) => `<span class="category-chip" draggable="true" data-id="${c.id}" data-index="${index}">
+        ) => `<span class="category-chip" draggable="true" data-id="${escapeHtml(c.id)}" data-index="${index}">
           <i class="fa-solid fa-grip-vertical drag-handle"></i>
-          ${c.name}
-          <button class="remove-btn" data-id="${c.id}">
+          ${escapeHtml(c.name)}
+          <button type="button" class="remove-btn" data-id="${escapeHtml(c.id)}"
+            aria-label="${escapeHtml(I18nService.t("btnDelete"))}">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </span>`
@@ -629,7 +662,7 @@ async function loadCategories() {
     }
 
     // Delete category handler
-    list.addEventListener("click", async (e) => {
+    list.onclick = async (e) => {
       const btn = e.target.closest(".remove-btn");
       if (!btn) return;
 
@@ -643,7 +676,7 @@ async function loadCategories() {
         loadStrategies();
         showToast(I18nService.t("toastDeleted"), "success");
       }
-    });
+    };
   }
 
   // Add category handler
@@ -688,8 +721,8 @@ async function populateCategorySelect(selectedId) {
     categories
       .map(
         (c) =>
-          `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${
-            c.name
+          `<option value="${escapeHtml(c.id)}" ${c.id === selectedId ? "selected" : ""}>${
+            escapeHtml(c.name)
           }</option>`
       )
       .join("");
@@ -769,14 +802,14 @@ function getEndpointForm(data) {
     <div class="form-group">
       <label>${I18nService.t("lblName")}</label>
       <input type="text" name="name" value="${
-        data.name || ""
+        escapeHtml(data.name)
       }" placeholder="My AI Model" required>
     </div>
 
     <div class="form-group">
       <label>${I18nService.t("lblUrl")}</label>
       <input type="text" name="url" id="urlInput" value="${
-        data.url || ""
+        escapeHtml(data.url)
       }" placeholder="https://api.openai.com/v1/chat/completions" required>
       <div id="urlHint" class="subtitle" style="margin-top:4px; font-size:11px; opacity:0.7"></div>
     </div>
@@ -784,14 +817,14 @@ function getEndpointForm(data) {
     <div class="form-group">
       <label>${I18nService.t("lblApiKey")}</label>
       <input type="password" name="apiKey" value="${
-        data.apiKey || ""
+        escapeHtml(data.apiKey)
       }" placeholder="sk-...">
     </div>
 
     <div class="form-group">
       <label>${I18nService.t("lblModel")}</label>
       <input type="text" name="model" value="${
-        data.model || ""
+        escapeHtml(data.model)
       }" placeholder="gpt-4, gemini-pro, llama3...">
     </div>
 
@@ -852,12 +885,12 @@ function getStrategyForm(data) {
       : ""
   }</label>
       <input type="text" name="name" value="${
-        data.name || ""
+        escapeHtml(data.name)
       }" placeholder="e.g., Fix Grammar" ${
     isBuiltIn
       ? 'disabled style="background-color:var(--bg-sidebar); cursor:not-allowed; opacity:0.7;"'
       : ""
-  }>
+      } required>
     </div>
     <div class="form-group">
       <label>${I18nService.t("lblInstruction")}</label>
@@ -865,12 +898,12 @@ function getStrategyForm(data) {
         isBuiltIn
           ? 'disabled style="background-color:var(--bg-sidebar); cursor:not-allowed; opacity:0.7;"'
           : ""
-      }>${data.instruction || ""}</textarea>
+      } required>${escapeHtml(data.instruction)}</textarea>
     </div>
     <div class="form-group">
       <label>${I18nService.t("lblLinkedEndpoint")}</label>
       <div id="endpointDropdownContainer"></div>
-      <input type="hidden" name="linkedEndpointId" id="endpointSelectValue" value="${data.linkedEndpointId || ""}">
+      <input type="hidden" name="linkedEndpointId" id="endpointSelectValue" value="${escapeHtml(data.linkedEndpointId)}">
     </div>
     <div class="form-group">
       <label>${I18nService.t("lblCategory")}</label>
@@ -915,7 +948,7 @@ function getStrategyForm(data) {
             }">
                 <div class="form-group">
                     <textarea name="systemPrompt" style="min-height:150px; font-size:12px; font-family:'Menlo', monospace; line-height:1.5; width:100%;" placeholder="Default System Prompt...">${
-                      data.systemPrompt || DEFAULT_SYSTEM_PROMPT
+                      escapeHtml(data.systemPrompt || DEFAULT_SYSTEM_PROMPT)
                     }</textarea>
                     <div class="subtitle" style="margin-top:6px;">${I18nService.t(
                       "hintSystemPrompt"
@@ -956,8 +989,8 @@ function createCustomDropdown(container, options, selectedValue, onChange) {
   trigger.className = 'custom-dropdown-trigger';
   trigger.innerHTML = `
     <span class="trigger-content">
-      <span class="trigger-text">${displayText}</span>
-      ${displayTag ? `<span class="custom-dropdown-tag small">${displayTag}</span>` : ''}
+      <span class="trigger-text">${escapeHtml(displayText)}</span>
+      ${displayTag ? `<span class="custom-dropdown-tag small">${escapeHtml(displayTag)}</span>` : ''}
     </span>
     <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
   `;
@@ -974,8 +1007,8 @@ function createCustomDropdown(container, options, selectedValue, onChange) {
     optionEl.dataset.value = opt.value;
     
     optionEl.innerHTML = `
-      <span class="option-text">${opt.label}</span>
-      ${opt.tag ? `<span class="custom-dropdown-tag">${opt.tag}</span>` : ''}
+      <span class="option-text">${escapeHtml(opt.label)}</span>
+      ${opt.tag ? `<span class="custom-dropdown-tag">${escapeHtml(opt.tag)}</span>` : ''}
     `;
     
     optionEl.addEventListener('click', () => {
@@ -1019,7 +1052,7 @@ function createCustomDropdown(container, options, selectedValue, onChange) {
     if (!wrapper.contains(e.target)) {
       wrapper.classList.remove('open');
     }
-  });
+  }, modalAbortController ? { signal: modalAbortController.signal } : undefined);
   
   wrapper.appendChild(trigger);
   wrapper.appendChild(menu);
@@ -1069,8 +1102,8 @@ async function populateEndpointSelect(selectedId) {
   
   // If no endpoints, show message
   if (endpoints.length === 0) {
-    container.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 13px;">
-      ${I18nService.t("noStrategies") || "No endpoints found. Create one first."}
+    container.innerHTML = `<div class="inline-notice">
+      ${escapeHtml(I18nService.t("noEndpoints") || "No endpoints found. Create one first.")}
     </div>`;
     return;
   }
@@ -1083,6 +1116,8 @@ async function populateEndpointSelect(selectedId) {
 // --- Logic ---
 
 async function handleTestConnection() {
+  if (!elements.modalForm.reportValidity()) return;
+
   const btn = document.getElementById("testEndpointBtn");
   if (btn) {
     btn.disabled = true;
@@ -1128,15 +1163,16 @@ async function handleTestConnection() {
       if (outputText && outputText.length > 0) {
         resultSpan.innerHTML = `${I18nService.t(
           "msgTestSuccess"
-        )}<br><em style="opacity:0.8">Output: "${outputText.substring(
-          0,
-          50
-        )}..."</em>`;
+        )}<br><em style="opacity:0.8">Output: "${escapeHtml(
+          outputText.substring(0, 50)
+        )}${outputText.length > 50 ? "..." : ""}"</em>`;
         resultSpan.style.color = "var(--success)";
       } else {
-        resultSpan.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; margin-right:4px;"></i> <strong>${status} OK</strong> (But no text found)<br><details><summary>Raw JSON</summary>${JSON.stringify(
-          apiJson
-        )}</details>`;
+        resultSpan.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; margin-right:4px;"></i> <strong>${escapeHtml(
+          status
+        )} OK</strong> (But no text found)<br><details><summary>Raw JSON</summary><pre>${escapeHtml(
+          JSON.stringify(apiJson, null, 2)
+        )}</pre></details>`;
         resultSpan.style.color = "var(--warning)";
       }
     } else {
@@ -1148,7 +1184,7 @@ async function handleTestConnection() {
   } catch (e) {
     resultSpan.innerHTML =
       `<i class="fa-solid fa-circle-xmark" style="color:#ef4444; margin-right:4px;"></i> Error: ` +
-      e.message;
+      escapeHtml(e.message);
     resultSpan.style.color = "var(--danger)";
   } finally {
     if (btn) {
@@ -1158,25 +1194,36 @@ async function handleTestConnection() {
   }
 }
 
-async function handleSave() {
+async function handleSave(e) {
+  e?.preventDefault();
+  if (!elements.modalForm.reportValidity()) return;
+
+  elements.saveModalBtn.disabled = true;
   const formData = new FormData(elements.modalForm);
   const data = Object.fromEntries(formData.entries());
 
   if (!currentEditId) data.id = crypto.randomUUID();
   else data.id = currentEditId;
 
-  if (currentModalMode === "endpoint") {
-    // Save minimal data only
-    await StorageService.saveEndpoint(data);
-    loadEndpoints();
-  } else {
-    // Checkbox handling
-    data.useCustomSystemPrompt = !!formData.get("useCustomSystemPrompt");
-
-    await StorageService.saveStrategy(data);
-    loadStrategies();
+  try {
+    if (currentModalMode === "endpoint") {
+      await StorageService.saveEndpoint(data);
+      await loadEndpoints();
+    } else {
+      data.useCustomSystemPrompt = !!formData.get("useCustomSystemPrompt");
+      await StorageService.saveStrategy(data);
+      await loadStrategies();
+    }
+    closeModal();
+    showToast(I18nService.t("toastSaved"), "success");
+  } catch (error) {
+    showToast(
+      I18nService.t("toastSaveFail", [error.message]) || `Save failed: ${error.message}`,
+      "danger"
+    );
+  } finally {
+    elements.saveModalBtn.disabled = false;
   }
-  closeModal();
 }
 
 // --- Standard CRUD (Load/Delete) ---
@@ -1184,7 +1231,16 @@ async function loadEndpoints() {
   const endpoints = await StorageService.getEndpoints();
   const config = await StorageService.getAppConfig();
   const defaultId = config.defaultEndpointId || (endpoints.length > 0 ? endpoints[0].id : "");
-  
+
+  if (endpoints.length === 0) {
+    renderEmptyState(
+      elements.endpointList,
+      "fa-plug",
+      I18nService.t("noEndpoints") || "No endpoints yet. Add one to start optimizing."
+    );
+    return;
+  }
+
   elements.endpointList.innerHTML = endpoints
     .map(
       (e) => {
@@ -1192,20 +1248,20 @@ async function loadEndpoints() {
         return `
     <div class="card">
       <div>
-        <h3>${e.name} <span class="endpoint-tag">${
-          e.provider || "custom"
+        <h3>${escapeHtml(e.name)} <span class="endpoint-tag">${
+          escapeHtml(e.provider || "custom")
         }</span>${isDefault ? ` <span class="custom-dropdown-tag small">${I18nService.t("tagDefault") || "Default"}</span>` : ''}</h3>
-        <p>${e.url}</p>
+        <p title="${escapeHtml(e.url)}">${escapeHtml(e.url)}</p>
       </div>
       <div class="endpoint-actions">
-        <button class="btn-set-default ${isDefault ? 'is-default' : ''}" data-action="setDefault" data-id="${e.id}" title="${I18nService.t("btnSetDefault") || "Set as Default"}">
+        <button type="button" class="btn-set-default ${isDefault ? 'is-default' : ''}" data-action="setDefault" data-id="${escapeHtml(e.id)}" title="${escapeHtml(I18nService.t("btnSetDefault") || "Set as Default")}">
           ${isDefault ? '★' : '☆'}
         </button>
-        <button class="btn-secondary" data-action="edit" data-id="${
-          e.id
+        <button type="button" class="btn-secondary" data-action="edit" data-id="${
+          escapeHtml(e.id)
         }">${I18nService.t("btnEdit")}</button>
-        <button class="btn-secondary" data-action="delete" data-id="${
-          e.id
+        <button type="button" class="btn-secondary" data-action="delete" data-id="${
+          escapeHtml(e.id)
         }" style="color:var(--danger);border-color:var(--border)">${I18nService.t(
           "btnDelete"
         )}</button>
@@ -1305,34 +1361,45 @@ async function loadStrategies(filterCategoryId = null) {
     );
   }
 
+  if (filteredStrategies.length === 0) {
+    renderEmptyState(
+      elements.strategyList,
+      "fa-filter",
+      I18nService.t("noMatchingStrategies") || "No strategies match this filter."
+    );
+    return;
+  }
+
   elements.strategyList.innerHTML = filteredStrategies
     .map((s) => {
       const categoryName = s.categoryId ? categoryMap[s.categoryId] : null;
       return `
       <div class="card">
         <div>
-          <h3>${s.name}${
-        categoryName ? ` <span class="category-tag">${categoryName}</span>` : ""
+          <h3>${escapeHtml(s.name)}${
+        categoryName ? ` <span class="category-tag">${escapeHtml(categoryName)}</span>` : ""
       }</h3>
-          <p>${(s.instruction || "").substring(0, 50)}...</p>
+          <p>${escapeHtml((s.instruction || "").substring(0, 100))}${
+            (s.instruction || "").length > 100 ? "…" : ""
+          }</p>
         </div>
         <div class="endpoint-actions">
            ${
              ["default_optimize", "default_image_gen"].includes(s.id)
                ? `
-               <button class="btn-secondary" data-action="edit" data-id="${
-                 s.id
+               <button type="button" class="btn-secondary" data-action="edit" data-id="${
+                 escapeHtml(s.id)
                }">${I18nService.t("btnEditEndpoint")}</button>
                <span class="endpoint-tag" style="background:var(--bg-sidebar); border:1px solid var(--border); color:var(--text-muted);">${I18nService.t(
                  "tagBuiltIn"
                )}</span>
                `
                : `
-               <button class="btn-secondary" data-action="edit" data-id="${
-                 s.id
+               <button type="button" class="btn-secondary" data-action="edit" data-id="${
+                 escapeHtml(s.id)
                }">${I18nService.t("btnEdit")}</button>
-               <button class="btn-secondary" data-action="delete" data-id="${
-                 s.id
+               <button type="button" class="btn-secondary" data-action="delete" data-id="${
+                 escapeHtml(s.id)
                }" style="color:var(--danger);border-color:var(--border)">${I18nService.t(
                    "btnDelete"
                  )}</button>
@@ -1354,7 +1421,7 @@ async function loadStrategies(filterCategoryId = null) {
         strategies.find((x) => x.id === id)
       );
     if (action === "delete") {
-      if (confirm("Delete?")) {
+      if (confirm(I18nService.t("confirmDelete"))) {
         await StorageService.deleteStrategy(id);
         loadStrategies();
       }
@@ -1363,17 +1430,19 @@ async function loadStrategies(filterCategoryId = null) {
 }
 
 function openModal(mode, data = null) {
+  modalPreviouslyFocused = document.activeElement;
+  modalAbortController?.abort();
+  modalAbortController = new AbortController();
   currentModalMode = mode;
   currentEditId = data ? data.id : null;
-  const verb = data
-    ? I18nService.t("btnEdit")
-    : I18nService.t("modalTitleAdd", [""]);
-  // e.g. "Edit Endpoint" vs "Add Endpoint" logic was simple before, now slightly localized.
-  // Better: "modalTitleEdit" with param.
+  const itemLabel = I18nService.t(
+    mode === "endpoint" ? "itemEndpoint" : "itemStrategy"
+  );
   elements.modalTitle.textContent = data
-    ? I18nService.t("modalTitleEdit", [mode])
-    : I18nService.t("modalTitleAdd", [mode]);
+    ? I18nService.t("modalTitleEdit", [itemLabel])
+    : I18nService.t("modalTitleAdd", [itemLabel]);
   elements.modalOverlay.classList.remove("hidden");
+  elements.modalOverlay.setAttribute("aria-hidden", "false");
   elements.modalForm.innerHTML =
     mode === "endpoint" ? getEndpointForm(data) : getStrategyForm(data);
 
@@ -1400,12 +1469,27 @@ function openModal(mode, data = null) {
       });
     }
   }
+
+  requestAnimationFrame(() => {
+    const firstField = elements.modalForm.querySelector(
+      "input:not([type='hidden']):not(:disabled), select:not(:disabled), textarea:not(:disabled)"
+    );
+    firstField?.focus();
+  });
 }
 
 function closeModal() {
   elements.modalOverlay.classList.add("hidden");
+  elements.modalOverlay.setAttribute("aria-hidden", "true");
+  elements.modalForm.innerHTML = "";
   currentModalMode = null;
   currentEditId = null;
+  modalAbortController?.abort();
+  modalAbortController = null;
+  if (modalPreviouslyFocused instanceof HTMLElement) {
+    modalPreviouslyFocused.focus();
+  }
+  modalPreviouslyFocused = null;
 }
 
 
@@ -1430,7 +1514,8 @@ function showConfirmToast(message) {
         }</button>
       </div>
     `;
-    document.body.appendChild(toast);
+    const toastContainer = document.getElementById("toastContainer");
+    (toastContainer || document.body).appendChild(toast);
 
     // Force reflow
     toast.offsetHeight;

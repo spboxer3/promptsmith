@@ -147,16 +147,21 @@ async function handleOptimization(strategyId, context, injector, ui) {
 
   // Close menu and show Loading UI immediately
   ui.hideMenu();
-  ui.showReviewLoading(context.text, context);
+  let cancelled = false;
+  ui.showReviewLoading(context.text, context, () => {
+    cancelled = true;
+  });
 
   try {
     const strategies = await StorageService.getStrategies();
+    if (cancelled) return;
     const strategy = strategies.find((s) => s.id === strategyId);
     if (!strategy) {
       throw new Error("Strategy not found");
     }
 
     const endpoints = await StorageService.getEndpoints();
+    if (cancelled) return;
     
     // Resolve endpoint - handle "__default__" special value
     let endpoint;
@@ -176,6 +181,7 @@ async function handleOptimization(strategyId, context, injector, ui) {
 
     // Get app config for output language setting
     const appConfig = await StorageService.getAppConfig();
+    if (cancelled) return;
 
     // buildRequest(config, input, instruction, customSystemPrompt, outputLanguage)
     const requestConfig = RequestAdapter.buildRequest(
@@ -193,6 +199,7 @@ async function handleOptimization(strategyId, context, injector, ui) {
       type: "EXECUTE_REQUEST",
       payload: requestConfig,
     });
+    if (cancelled) return;
 
     console.log("[PromptSmith] Background response:", response);
 
@@ -255,6 +262,7 @@ async function handleOptimization(strategyId, context, injector, ui) {
       }
     );
   } catch (err) {
+    if (cancelled) return;
     // On error, show toast (and maybe close preloader or keep it with error?)
     // For now, close preloader implicitly by hiding diff? Or just show error toast?
     // If showReviewLoading is open, user is stuck unless we close or show error.

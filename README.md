@@ -46,6 +46,12 @@ PromptSmith is a privacy-first, "Bring Your Own Key" (BYOK) AI client that integ
 
 ## Changelog
 
+### v0.5.3
+
+- **Composer Integration**: Corrected PromptSmith button placement in ChatGPT, Claude, and Gemini using each site's native CSS Grid or Flex layout.
+- **Responsive UI**: Improved popup, options, history, and review layouts across different content and viewport states.
+- **Interaction Polish**: Added clearer focus states, cancellable loading, safer clipboard feedback, and improved dialog accessibility.
+
 ### v0.5.2
 
 - **Bug Fix**: Fixed duplicate floating icon appearing when FAB was recreated during loading state.
